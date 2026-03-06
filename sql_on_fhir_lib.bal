@@ -216,15 +216,15 @@ isolated function selectOperation(json selectExpression, json node) returns json
             }
             string wherePath = <string>whereCondition["path"];
             json[] vals = check fhirpath:getValuesFromFhirPath(node, wherePath);
-            
+
             // Get the first value or null if empty
             json val = vals.length() > 0 ? vals[0] : ();
-            
+
             // Assert that the value is either null or boolean
             if (val !== () && val !is boolean) {
                 return error("'where' expression path should return 'boolean'");
             }
-            
+
             // If value is false or null, exclude this node
             if (val === () || val === false) {
                 return [];
