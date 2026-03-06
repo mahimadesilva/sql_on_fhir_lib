@@ -1,0 +1,11 @@
+[package]
+org = "mahima_de_silva"
+name = "sql_on_fhir_lib"
+version = "0.1.0"
+distribution = "2201.12.10"
+
+[[dependency]]
+org = "ballerinax"
+name = "health.fhir.r4utils.fhirpath"
+version = "4.0.1"
+repository = "local"
