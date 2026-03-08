@@ -1,5 +1,121 @@
 import ballerinax/health.fhir.r4utils.fhirpath;
 
+// Column type for validation
+type ColumnDefinition record {
+    string name;
+};
+
+// Validates the view definition columns and returns the list of column names
+// C: Context columns (already defined columns)
+// S: Selection structure to validate
+isolated function validateColumns(json S, ColumnDefinition[] C) returns ColumnDefinition[]|error {
+    // Initialize Ret to equal C
+    ColumnDefinition[] Ret = C.clone();
+    map<anydata> selection = check S.cloneWithType();
+
+    // For each Column col in S.column[]
+    if selection.hasKey("column") {
+        json[] columns = check selection["column"].cloneWithType();
+        foreach var col in columns {
+            map<anydata> column = check col.cloneWithType();
+            string colName = <string>column["name"];
+
+            // If a Column with name col.name already exists in Ret, throw "Column Already Defined"
+            foreach var existingCol in Ret {
+                if existingCol.name == colName {
+                    return error("Column Already Defined: " + colName);
+                }
+            }
+            // Otherwise, append col to Ret
+            Ret.push({name: colName});
+        }
+    }
+
+    // For each Selection Structure sel in S.select[]
+    if selection.hasKey("select") {
+        json[] selects = check selection["select"].cloneWithType();
+        foreach var sel in selects {
+            // For each Column c in Validate(sel, Ret)
+            ColumnDefinition[] validatedCols = check validateColumns(sel, Ret);
+            // Get only the new columns (those not in Ret)
+            foreach var c in validatedCols {
+                boolean exists = false;
+                foreach var existingCol in Ret {
+                    if existingCol.name == c.name {
+                        exists = true;
+                        break;
+                    }
+                }
+                if !exists {
+                    Ret.push(c);
+                }
+            }
+        }
+    }
+
+    // If S.unionAll[] is present
+    if selection.hasKey("unionAll") {
+        json[] unionAlls = check selection["unionAll"].cloneWithType();
+
+        if unionAlls.length() > 0 {
+            // Define u0 as Validate(S.unionAll[0], Ret)
+            ColumnDefinition[] u0 = check validateColumns(unionAlls[0], Ret);
+            // Get only new columns from u0 (not in Ret)
+            string[] u0Names = [];
+            foreach var col in u0 {
+                boolean existsInRet = false;
+                foreach var existingCol in Ret {
+                    if existingCol.name == col.name {
+                        existsInRet = true;
+                        break;
+                    }
+                }
+                if !existsInRet {
+                    u0Names.push(col.name);
+                }
+            }
+
+            // For each Selection Structure sel in S.unionAll[] (starting from index 1)
+            foreach int i in 1 ..< unionAlls.length() {
+                // Define u as ValidateColumns(sel, Ret)
+                ColumnDefinition[] u = check validateColumns(unionAlls[i], Ret);
+
+                // Get only new column names from u (not in Ret)
+                string[] uNames = [];
+                foreach var col in u {
+                    boolean existsInRet = false;
+                    foreach var existingCol in Ret {
+                        if existingCol.name == col.name {
+                            existsInRet = true;
+                            break;
+                        }
+                    }
+                    if !existsInRet {
+                        uNames.push(col.name);
+                    }
+                }
+
+                // If the list of names from u0 is different from the list of names from u, throw "Union Branches Inconsistent"
+                if u0Names.length() != uNames.length() {
+                    return error("Union Branches Inconsistent: column count mismatch");
+                }
+                foreach int j in 0 ..< u0Names.length() {
+                    if u0Names[j] != uNames[j] {
+                        return error("Union Branches Inconsistent: column names or order mismatch");
+                    }
+                }
+            }
+
+            // For each Column col in u0, append col to Ret (only new ones)
+            foreach var colName in u0Names {
+                Ret.push({name: colName});
+            }
+        }
+    }
+
+    return Ret;
+}
+
 // Function to merge two maps
 isolated function merge(json m1, json m2) returns json|error {
     json result = check m1.clone().mergeJson(m2);
@@ -439,7 +555,8 @@ isolated function doEval(json selectExpression, json node) returns json[]|error 
 }
 
 public isolated function evaluate(json[] resources, json viewDefinition) returns json[]|error {
-    // TODO: Validate view definition structure
+    // Validate view definition structure
+    _ = check validateColumns(viewDefinition, []);
 
     json noramalDef = check normalize(viewDefinition.clone());
 
