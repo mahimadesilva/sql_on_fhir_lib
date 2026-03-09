@@ -315,7 +315,7 @@ function testRepeatCombinedWithForEach() returns error? {
                         "column": [
                             {
                                 "name": "answerValue",
-                                "path": "value.ofType(string)",
+                                "path": "valueString",
                                 "type": "string"
                             }
                         ]
@@ -370,7 +370,7 @@ function testRepeatCombinedWithForEachOrNull() returns error? {
                         "column": [
                             {
                                 "name": "answerValue",
-                                "path": "value.ofType(string)",
+                                "path": "valueString",
                                 "type": "string"
                             }
                         ]
