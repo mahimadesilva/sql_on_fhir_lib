@@ -5,6 +5,165 @@ type ColumnDefinition record {
     string name;
 };
 
+# Type definition for custom FHIRPath extension functions
+# + nodes - Array of FHIR nodes to process
+# + return - Array of extracted values
+public type GetResourceKeyFunction isolated function (json[] nodes) returns json[]|error;
+
+# Type definition for getReferenceKey extension function with options
+# + nodes - Array of FHIR nodes to process
+# + resourceType - Optional resource type to filter by
+# + return - Array of extracted reference keys
+public type GetReferenceKeyFunction isolated function (json[] nodes, string? resourceType) returns json[]|error;
+
+# Configuration record for FHIRPath extension functions
+# + getResourceKey - Custom implementation for getResourceKey function
+# + getReferenceKey - Custom implementation for getReferenceKey function
+public type FhirPathExtensions record {|
+    GetResourceKeyFunction getResourceKey?;
+    GetReferenceKeyFunction getReferenceKey?;
+|};
+
+# Default implementation of getResourceKey - extracts id from nodes
+# + nodes - Array of FHIR nodes
+# + return - Array of resource ids
+public isolated function defaultGetResourceKey(json[] nodes) returns json[]|error {
+    json[] result = [];
+    foreach json node in nodes {
+        if node is map<json> && node.hasKey("id") {
+            result.push(node["id"]);
+        }
+    }
+    return result;
+}
+
+# Default implementation of getReferenceKey - extracts reference key from reference string
+# + nodes - Array of FHIR nodes containing reference field
+# + resourceType - Optional resource type to filter by
+# + return - Array of extracted reference keys
+public isolated function defaultGetReferenceKey(json[] nodes, string? resourceType) returns json[]|error {
+    json[] result = [];
+    foreach json node in nodes {
+        if node is map<json> && node.hasKey("reference") {
+            string reference = <string>node["reference"];
+            // Remove double slashes
+            string cleanRef = re `//`.replaceAll(reference, "");
+            // Split by /_history to get base reference
+            string[] historyParts = re `/_history`.split(cleanRef);
+            string basePart = historyParts[0];
+
+            // Split by / to get type and key
+            string[] parts = re `/`.split(basePart);
+            if parts.length() >= 2 {
+                string refType = parts[parts.length() - 2];
+                string key = parts[parts.length() - 1];
+
+                if resourceType is () {
+                    // No filter, return all keys
+                    result.push(key);
+                } else if resourceType == refType {
+                    // Filter matches, return key
+                    result.push(key);
+                }
+                // Otherwise, filter doesn't match, skip this node
+            }
+        }
+    }
+    return result;
+}
+
+// Store for extension functions (module-level to be accessible across functions)
+isolated FhirPathExtensions currentExtensions = {};
+
+// Helper to check if path contains getResourceKey() call
+isolated function containsGetResourceKey(string path) returns boolean {
+    return path.includes(".getResourceKey()") || path.startsWith("getResourceKey()");
+}
+
+// Helper to check if path contains getReferenceKey() call
+isolated function containsGetReferenceKey(string path) returns boolean {
+    return path.includes(".getReferenceKey(") || path.startsWith("getReferenceKey(");
+}
+
+// Helper to extract base path before extension function call
+isolated function extractBasePath(string path, string funcName) returns string {
+    // Check for function at start (without dot)
+    string funcNameWithoutDot = funcName.startsWith(".") ? funcName.substring(1) : funcName;
+    if path.startsWith(funcNameWithoutDot) {
+        return "";
+    }
+    int? idx = path.indexOf(funcName);
+    if idx is int && idx > 0 {
+        return path.substring(0, idx);
+    }
+    return "";
+}
+
+// Helper to extract parameter from getReferenceKey call
+isolated function extractReferenceKeyParam(string path) returns string? {
+    int? startIdx = path.indexOf(".getReferenceKey(");
+    int parenStart;
+    if startIdx is () {
+        // Check if it starts with getReferenceKey( (no leading dot)
+        if path.startsWith("getReferenceKey(") {
+            parenStart = "getReferenceKey(".length();
+        } else {
+            return ();
+        }
+    } else {
+        parenStart = <int>startIdx + ".getReferenceKey(".length();
+    }
+    int? endIdx = path.indexOf(")", parenStart);
+    if endIdx is () {
+        return ();
+    }
+    string paramStr = path.substring(parenStart, <int>endIdx).trim();
+    if paramStr.length() == 0 {
+        return ();
+    }
+    // Remove surrounding quotes if present
+    if (paramStr.startsWith("'") && paramStr.endsWith("'")) ||
+        (paramStr.startsWith("\"") && paramStr.endsWith("\"")) {
+        return paramStr.substring(1, paramStr.length() - 1);
+    }
+    return paramStr;
+}
+
+# Evaluates a FHIRPath expression with support for custom extension functions
+# + node - The FHIR resource node to evaluate against
+# + path - The FHIRPath expression
+# + extensions - Optional custom extension functions
+# + return - Array of values from the FHIRPath evaluation
+isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? extensions = ()) returns json[]|error {
+    // Check for getResourceKey() function call
+    if containsGetResourceKey(path) {
+        // Extract the path before .getResourceKey()
+        string basePath = extractBasePath(path, ".getResourceKey()");
+        json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath) : [node];
+
+        // Use custom or default implementation
+        GetResourceKeyFunction getResourceKeyFn = extensions?.getResourceKey ?: defaultGetResourceKey;
+        return getResourceKeyFn(nodes);
+    }
+
+    // Check for getReferenceKey() function call with optional parameter
+    if containsGetReferenceKey(path) {
+        // Extract the path before .getReferenceKey()
+        string basePath = extractBasePath(path, ".getReferenceKey(");
+        json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath) : [node];
+
+        // Extract the parameter if present
+        string? resourceTypeParam = extractReferenceKeyParam(path);
+
+        // Use custom or default implementation
+        GetReferenceKeyFunction getReferenceKeyFn = extensions?.getReferenceKey ?: defaultGetReferenceKey;
+        return getReferenceKeyFn(nodes, resourceTypeParam);
+    }
+
+    // Standard FHIRPath evaluation
+    return fhirpath:getValuesFromFhirPath(node, path);
+}
+
 // Validates the view definition columns and returns the list of column names
 // C: Context columns (already defined columns)
 // S: Selection structure to validate
@@ -285,7 +444,7 @@ isolated function normalize(json def) returns json|error {
     }
 }
 
-isolated function columnOperation(json selectExpression, json node) returns json[]|error {
+isolated function columnOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     map<anydata> result = {};
     map<anydata> expression = <map<anydata>>selectExpression;
 
@@ -299,7 +458,7 @@ isolated function columnOperation(json selectExpression, json node) returns json
         }
 
         // TODO: Replace path expressions with constants specified in the view definition
-        json[] vs = check fhirpath:getValuesFromFhirPath(node, <string>c["path"]);
+        json[] vs = check evaluateFhirPath(node, <string>c["path"], extensions);
         string recordKey = c.hasKey("name") && (c["name"] is string) ? <string>c["name"] : <string>c["path"];
 
         if c.hasKey("collection") && c["collection"] is boolean && <boolean>c["collection"] {
@@ -316,7 +475,7 @@ isolated function columnOperation(json selectExpression, json node) returns json
     return [result.toJson()];
 }
 
-isolated function selectOperation(json selectExpression, json node) returns json[]|error {
+isolated function selectOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     map<anydata> expression = <map<anydata>>selectExpression;
     if (!expression.hasKey("select")) {
         return error("No select specified in select expression");
@@ -331,7 +490,7 @@ isolated function selectOperation(json selectExpression, json node) returns json
                 return error("'where' condition must have a 'path' property");
             }
             string wherePath = <string>whereCondition["path"];
-            json[] vals = check fhirpath:getValuesFromFhirPath(node, wherePath);
+            json[] vals = check evaluateFhirPath(node, wherePath, extensions);
 
             // Get the first value or null if empty
             json val = vals.length() > 0 ? vals[0] : ();
@@ -355,14 +514,14 @@ isolated function selectOperation(json selectExpression, json node) returns json
     }
     json[][] evalResult = [];
     foreach var s in <json[]>expression["select"] {
-        json[] partialResult = check doEval(s, node);
+        json[] partialResult = check doEval(s, node, extensions);
         evalResult.push(partialResult);
     }
 
     return rowProduct(evalResult);
 }
 
-isolated function forEachOperation(json selectExpression, json node) returns json[]|error {
+isolated function forEachOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     map<anydata> expression = <map<anydata>>selectExpression;
 
     // Assert forEach is required
@@ -373,7 +532,7 @@ isolated function forEachOperation(json selectExpression, json node) returns jso
     string forEachPath = <string>expression["forEach"];
 
     // Evaluate FHIRPath expression to get nodes
-    json[] nodes = check fhirpath:getValuesFromFhirPath(node, forEachPath);
+    json[] nodes = check evaluateFhirPath(node, forEachPath, extensions);
 
     json[] results = [];
 
@@ -381,7 +540,7 @@ isolated function forEachOperation(json selectExpression, json node) returns jso
     foreach json nodeItem in nodes {
         if (expression.hasKey("select")) {
             json selectExpr = {"select": expression["select"]}.toJson();
-            json[] selectResults = check selectOperation(selectExpr, nodeItem);
+            json[] selectResults = check selectOperation(selectExpr, nodeItem, extensions);
             results.push(...selectResults);
         }
     }
@@ -389,7 +548,7 @@ isolated function forEachOperation(json selectExpression, json node) returns jso
     return results;
 }
 
-isolated function forEachOrNullOperation(json selectExpression, json node) returns json[]|error {
+isolated function forEachOrNullOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     map<anydata> expression = <map<anydata>>selectExpression;
 
     // Assert forEach is required
@@ -400,7 +559,7 @@ isolated function forEachOrNullOperation(json selectExpression, json node) retur
     string forEachOrNullPath = <string>expression["forEachOrNull"];
 
     // Evaluate FHIRPath expression to get nodes
-    json[] nodes = check fhirpath:getValuesFromFhirPath(node, forEachOrNullPath);
+    json[] nodes = check evaluateFhirPath(node, forEachOrNullPath, extensions);
     if nodes.length() == 0 {
         nodes = [{}];
     }
@@ -411,7 +570,7 @@ isolated function forEachOrNullOperation(json selectExpression, json node) retur
     foreach json nodeItem in nodes {
         if (expression.hasKey("select")) {
             json selectExpr = {"select": expression["select"]}.toJson();
-            json[] selectResults = check selectOperation(selectExpr, nodeItem);
+            json[] selectResults = check selectOperation(selectExpr, nodeItem, extensions);
             results.push(...selectResults);
         }
     }
@@ -434,7 +593,7 @@ isolated function arraysUnique(json[] results) returns int {
     return uniqueColumnSets.length();
 }
 
-isolated function unionAllOperation(json selectExpression, json node) returns json[]|error {
+isolated function unionAllOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     map<anydata> expression = <map<anydata>>selectExpression;
 
     // Assert unionAll exists
@@ -445,7 +604,7 @@ isolated function unionAllOperation(json selectExpression, json node) returns js
     // FlatMap: evaluate each unionAll element and flatten the results
     json[] result = [];
     foreach var d in <json[]>expression["unionAll"] {
-        json[] partialResult = check doEval(d, node);
+        json[] partialResult = check doEval(d, node, extensions);
         result.push(...partialResult);
     }
 
@@ -461,7 +620,7 @@ isolated function unionAllOperation(json selectExpression, json node) returns js
 }
 
 // Helper function to recursively traverse FHIR nodes
-isolated function traverse(json currentNode, string[] paths, json[] result, boolean isRoot) returns error? {
+isolated function traverse(json currentNode, string[] paths, json[] result, boolean isRoot, FhirPathExtensions? extensions = ()) returns error? {
     // Don't add the root node to results, only its children
     if !isRoot {
         result.push(currentNode);
@@ -472,28 +631,28 @@ isolated function traverse(json currentNode, string[] paths, json[] result, bool
         // TODO: Replace path expressions with constants specified in the view definition
 
         // Evaluate FHIRPath expression to get child nodes
-        json[] childNodes = check fhirpath:getValuesFromFhirPath(currentNode, path);
+        json[] childNodes = check evaluateFhirPath(currentNode, path, extensions);
 
         foreach json childNode in childNodes {
             // Only traverse if it's an object (map)
             if childNode !is json[] {
-                check traverse(childNode, paths, result, false);
+                check traverse(childNode, paths, result, false, extensions);
             }
         }
     }
 }
 
 // Recursively traverse a FHIR node using path expressions
-isolated function recursiveTraverse(string[] paths, json node, map<anydata> def) returns json[]|error {
+isolated function recursiveTraverse(string[] paths, json node, map<anydata> def, FhirPathExtensions? extensions = ()) returns json[]|error {
     json[] result = [];
 
     // Start traversal from root node
-    check traverse(node, paths, result, true);
+    check traverse(node, paths, result, true, extensions);
 
     return result;
 }
 
-isolated function repeatOperation(json selectExpression, json node) returns json[]|error {
+isolated function repeatOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     map<anydata> expression = <map<anydata>>selectExpression;
 
     // Assert repeat exists
@@ -507,44 +666,44 @@ isolated function repeatOperation(json selectExpression, json node) returns json
 
     // Use recursiveTraverse to get all nodes at all depths.
     string[] paths = check expression["repeat"].cloneWithType();
-    var nodes = check recursiveTraverse(paths, node, expression);
+    var nodes = check recursiveTraverse(paths, node, expression, extensions);
     json[] results = [];
 
     // For each node, apply the select operation
     foreach json nodeItem in nodes {
         json selectExpr = {"select": expression["select"]}.toJson();
-        json[] selectResults = check selectOperation(selectExpr, nodeItem);
+        json[] selectResults = check selectOperation(selectExpr, nodeItem, extensions);
         results.push(...selectResults);
     }
     return results;
 }
 
-isolated function doEval(json selectExpression, json node) returns json[]|error {
+isolated function doEval(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
 
     match check selectExpression.'type {
         "column" =>
         {
-            return columnOperation(selectExpression, node);
+            return columnOperation(selectExpression, node, extensions);
         }
         "select" =>
         {
-            return selectOperation(selectExpression, node);
+            return selectOperation(selectExpression, node, extensions);
         }
         "forEach" =>
         {
-            return forEachOperation(selectExpression, node);
+            return forEachOperation(selectExpression, node, extensions);
         }
         "forEachOrNull" =>
         {
-            return forEachOrNullOperation(selectExpression, node);
+            return forEachOrNullOperation(selectExpression, node, extensions);
         }
         "unionAll" =>
         {
-            return unionAllOperation(selectExpression, node);
+            return unionAllOperation(selectExpression, node, extensions);
         }
         "repeat" =>
         {
-            return repeatOperation(selectExpression, node);
+            return repeatOperation(selectExpression, node, extensions);
         }
         _ =>
         {
@@ -554,7 +713,12 @@ isolated function doEval(json selectExpression, json node) returns json[]|error 
 
 }
 
-public isolated function evaluate(json[] resources, json viewDefinition) returns json[]|error {
+# Evaluates FHIR resources against a view definition
+# + resources - Array of FHIR resources to evaluate
+# + viewDefinition - The view definition JSON
+# + extensions - Optional custom FHIRPath extension functions (getResourceKey, getReferenceKey)
+# + return - Array of result rows or error
+public isolated function evaluate(json[] resources, json viewDefinition, FhirPathExtensions? extensions = ()) returns json[]|error {
     // Validate view definition structure
     _ = check validateColumns(viewDefinition, []);
 
@@ -562,7 +726,7 @@ public isolated function evaluate(json[] resources, json viewDefinition) returns
 
     json[] results = [];
     foreach json 'resource in resources {
-        json[] evalResult = check doEval(noramalDef, 'resource);
+        json[] evalResult = check doEval(noramalDef, 'resource, extensions);
         // Accumulate results
         foreach var result in evalResult {
             results.push(result);
