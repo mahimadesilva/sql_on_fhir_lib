@@ -20,39 +20,13 @@ json[] validateResources = [
 
 
 @test:Config {}
-function testEmpty() {
-    json view = {};
-    json[]|error result = evaluate(validateResources, view);
-    test:assertTrue(result is error, msg = "Expected an error for: empty");
-}
-
-@test:Config {}
-function testMissingResource() {
-    json view = {
-        "select": [
-            {
-                "column": [
-                    {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
-                    }
-                ]
-            }
-        ]
-    };
-    json[]|error result = evaluate(validateResources, view);
-    test:assertTrue(result is error, msg = "Expected an error for: missing resource");
-}
-
-@test:Config {}
 function testWrongFhirpath() {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "forEach": "@@"
+                forEach: "@@"
             }
         ]
     };
@@ -61,39 +35,24 @@ function testWrongFhirpath() {
 }
 
 @test:Config {}
-function testWrongTypeInForeach() {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
-            {
-                "forEach": 1
-            }
-        ]
-    };
-    json[]|error result = evaluate(validateResources, view);
-    test:assertTrue(result is error, msg = "Expected an error for: wrong type in forEach");
-}
-
-@test:Config {}
 function testWhereWithPathResolvingToNotBoolean() {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             }
         ],
-        "where": [
+        'where: [
             {
-                "path": "name.family"
+                path: "name.family"
             }
         ]
     };

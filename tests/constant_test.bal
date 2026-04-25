@@ -37,27 +37,27 @@ json[] constantResources = [
 
 @test:Config {}
 function testConstantInPath() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "name_use",
-                "valueString": "official"
+                name: "name_use",
+                valueString: "official"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "official_name",
-                        "path": "name.where(use = %name_use).family",
-                        "type": "string"
+                        name: "official_name",
+                        path: "name.where(use = %name_use).family",
+                        'type: "string"
                     }
                 ]
             }
@@ -78,23 +78,23 @@ function testConstantInPath() returns error? {
 
 @test:Config {}
 function testConstantInForeach() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "name_use",
-                "valueString": "official"
+                name: "name_use",
+                valueString: "official"
             }
         ],
-        "select": [
+        'select: [
             {
-                "forEach": "name.where(use = %name_use)",
-                "column": [
+                forEach: "name.where(use = %name_use)",
+                column: [
                     {
-                        "name": "official_name",
-                        "path": "family",
-                        "type": "string"
+                        name: "official_name",
+                        path: "family",
+                        'type: "string"
                     }
                 ]
             }
@@ -110,29 +110,29 @@ function testConstantInForeach() returns error? {
 
 @test:Config {}
 function testConstantInWhereElement() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "name_use",
-                "valueString": "official"
+                name: "name_use",
+                valueString: "official"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             }
         ],
-        "where": [
+        'where: [
             {
-                "path": "name.where(use = %name_use).exists()"
+                path: "name.where(use = %name_use).exists()"
             }
         ]
     };
@@ -146,39 +146,39 @@ function testConstantInWhereElement() returns error? {
 
 @test:Config {}
 function testConstantInUnionall() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "use1",
-                "valueString": "official"
+                name: "use1",
+                valueString: "official"
             },
             {
-                "name": "use2",
-                "valueString": "usual"
+                name: "use2",
+                valueString: "usual"
             }
         ],
-        "select": [
+        'select: [
             {
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "name.where(use = %use1)",
-                        "column": [
+                        forEach: "name.where(use = %use1)",
+                        column: [
                             {
-                                "name": "name",
-                                "path": "family",
-                                "type": "string"
+                                name: "name",
+                                path: "family",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "forEach": "name.where(use = %use2)",
-                        "column": [
+                        forEach: "name.where(use = %use2)",
+                        column: [
                             {
-                                "name": "name",
-                                "path": "family",
-                                "type": "string"
+                                name: "name",
+                                path: "family",
+                                'type: "string"
                             }
                         ]
                     }
@@ -202,27 +202,27 @@ function testConstantInUnionall() returns error? {
 
 @test:Config {}
 function testIntegerConstant() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "name_index",
-                "valueInteger": 1
+                name: "name_index",
+                valueInteger: 1
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "official_name",
-                        "path": "name[%name_index].family",
-                        "type": "string"
+                        name: "official_name",
+                        path: "name[%name_index].family",
+                        'type: "string"
                     }
                 ]
             }
@@ -243,29 +243,29 @@ function testIntegerConstant() returns error? {
 
 @test:Config {}
 function testBooleanConstant() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "is_deceased",
-                "valueBoolean": true
+                name: "is_deceased",
+                valueBoolean: true
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             }
         ],
-        "where": [
+        'where: [
             {
-                "path": "deceased.ofType(boolean).exists() and deceased.ofType(boolean) = %is_deceased"
+                path: "deceased.ofType(boolean).exists() and deceased.ofType(boolean) = %is_deceased"
             }
         ]
     };
@@ -279,23 +279,23 @@ function testBooleanConstant() returns error? {
 
 @test:Config {}
 function testAccessingAnUndefinedConstant() {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "name_use",
-                "valueString": "official"
+                name: "name_use",
+                valueString: "official"
             }
         ],
-        "select": [
+        'select: [
             {
-                "forEach": "name.where(use = %wrong_name)",
-                "column": [
+                forEach: "name.where(use = %wrong_name)",
+                column: [
                     {
-                        "name": "official_name",
-                        "path": "family",
-                        "type": "string"
+                        name: "official_name",
+                        path: "family",
+                        'type: "string"
                     }
                 ]
             }
@@ -307,26 +307,26 @@ function testAccessingAnUndefinedConstant() {
 
 @test:Config {}
 function testIncorrectConstantDefinition() {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "name_use"
+                name: "name_use"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "official_name",
-                        "path": "name.where(use = %name_use).family",
-                        "type": "string"
+                        name: "official_name",
+                        path: "name.where(use = %name_use).family",
+                        'type: "string"
                     }
                 ]
             }

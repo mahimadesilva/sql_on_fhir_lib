@@ -137,25 +137,17 @@ isolated function extractReferenceKeyParam(string path) returns string? {
 isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? extensions = ()) returns json[]|error {
     // Check for getResourceKey() function call
     if containsGetResourceKey(path) {
-        // Extract the path before .getResourceKey()
         string basePath = extractBasePath(path, ".getResourceKey()");
         json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath) : [node];
-
-        // Use custom or default implementation
         GetResourceKeyFunction getResourceKeyFn = extensions?.getResourceKey ?: defaultGetResourceKey;
         return getResourceKeyFn(nodes);
     }
 
     // Check for getReferenceKey() function call with optional parameter
     if containsGetReferenceKey(path) {
-        // Extract the path before .getReferenceKey()
         string basePath = extractBasePath(path, ".getReferenceKey(");
         json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath) : [node];
-
-        // Extract the parameter if present
         string? resourceTypeParam = extractReferenceKeyParam(path);
-
-        // Use custom or default implementation
         GetReferenceKeyFunction getReferenceKeyFn = extensions?.getReferenceKey ?: defaultGetReferenceKey;
         return getReferenceKeyFn(nodes, resourceTypeParam);
     }
@@ -164,115 +156,90 @@ isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? e
     return fhirpath:getValuesFromFhirPath(node, path);
 }
 
-// Validates the view definition columns and returns the list of column names
-// C: Context columns (already defined columns)
-// S: Selection structure to validate
-isolated function validateColumns(json S, ColumnDefinition[] C) returns ColumnDefinition[]|error {
-    // Initialize Ret to equal C
-    ColumnDefinition[] Ret = C.clone();
-    map<anydata> selection = check S.cloneWithType();
+// Validates column definitions for duplicates and unionAll branch consistency
+isolated function validateColumnsTyped(ViewDefinitionSelect[] selects, ColumnDefinition[] C) returns ColumnDefinition[]|error {
+    ColumnDefinition[] ret = C.clone();
 
-    // For each Column col in S.column[]
-    if selection.hasKey("column") {
-        json[] columns = check selection["column"].cloneWithType();
-        foreach var col in columns {
-            map<anydata> column = check col.cloneWithType();
-            string colName = <string>column["name"];
-
-            // If a Column with name col.name already exists in Ret, throw "Column Already Defined"
-            foreach var existingCol in Ret {
-                if existingCol.name == colName {
-                    return error("Column Already Defined: " + colName);
+    foreach ViewDefinitionSelect sel in selects {
+        // Validate column definitions within this select node
+        foreach ViewDefinitionSelectColumn col in (sel.column ?: []) {
+            foreach ColumnDefinition existing in ret {
+                if existing.name == col.name {
+                    return error("Column Already Defined: " + col.name);
                 }
             }
-            // Otherwise, append col to Ret
-            Ret.push({name: colName});
+            ret.push({name: col.name});
         }
-    }
 
-    // For each Selection Structure sel in S.select[]
-    if selection.hasKey("select") {
-        json[] selects = check selection["select"].cloneWithType();
-        foreach var sel in selects {
-            // For each Column c in Validate(sel, Ret)
-            ColumnDefinition[] validatedCols = check validateColumns(sel, Ret);
-            // Get only the new columns (those not in Ret)
-            foreach var c in validatedCols {
+        // Recurse into nested selects
+        if sel.'select != () {
+            ColumnDefinition[] validated = check validateColumnsTyped(sel.'select ?: [], ret);
+            foreach ColumnDefinition c in validated {
                 boolean exists = false;
-                foreach var existingCol in Ret {
+                foreach ColumnDefinition existingCol in ret {
                     if existingCol.name == c.name {
                         exists = true;
                         break;
                     }
                 }
                 if !exists {
-                    Ret.push(c);
+                    ret.push(c);
                 }
             }
         }
-    }
 
-    // If S.unionAll[] is present
-    if selection.hasKey("unionAll") {
-        json[] unionAlls = check selection["unionAll"].cloneWithType();
-
-        if unionAlls.length() > 0 {
-            // Define u0 as Validate(S.unionAll[0], Ret)
-            ColumnDefinition[] u0 = check validateColumns(unionAlls[0], Ret);
-            // Get only new columns from u0 (not in Ret)
-            string[] u0Names = [];
-            foreach var col in u0 {
-                boolean existsInRet = false;
-                foreach var existingCol in Ret {
-                    if existingCol.name == col.name {
-                        existsInRet = true;
-                        break;
-                    }
-                }
-                if !existsInRet {
-                    u0Names.push(col.name);
-                }
-            }
-
-            // For each Selection Structure sel in S.unionAll[] (starting from index 1)
-            foreach int i in 1 ..< unionAlls.length() {
-                // Define u as ValidateColumns(sel, Ret)
-                ColumnDefinition[] u = check validateColumns(unionAlls[i], Ret);
-
-                // Get only new column names from u (not in Ret)
-                string[] uNames = [];
-                foreach var col in u {
+        // Validate unionAll branches for consistency
+        if sel.unionAll != () {
+            ViewDefinitionSelect[] unionBranches = sel.unionAll ?: [];
+            if unionBranches.length() > 0 {
+                ColumnDefinition[] u0 = check validateColumnsTyped([unionBranches[0]], ret);
+                string[] u0Names = [];
+                foreach ColumnDefinition col in u0 {
                     boolean existsInRet = false;
-                    foreach var existingCol in Ret {
+                    foreach ColumnDefinition existingCol in ret {
                         if existingCol.name == col.name {
                             existsInRet = true;
                             break;
                         }
                     }
                     if !existsInRet {
-                        uNames.push(col.name);
+                        u0Names.push(col.name);
                     }
                 }
 
-                // If the list of names from u0 is different from the list of names from u, throw "Union Branches Inconsistent"
-                if u0Names.length() != uNames.length() {
-                    return error("Union Branches Inconsistent: column count mismatch");
-                }
-                foreach int j in 0 ..< u0Names.length() {
-                    if u0Names[j] != uNames[j] {
-                        return error("Union Branches Inconsistent: column names or order mismatch");
+                foreach int i in 1 ..< unionBranches.length() {
+                    ColumnDefinition[] u = check validateColumnsTyped([unionBranches[i]], ret);
+                    string[] uNames = [];
+                    foreach ColumnDefinition col in u {
+                        boolean existsInRet = false;
+                        foreach ColumnDefinition existingCol in ret {
+                            if existingCol.name == col.name {
+                                existsInRet = true;
+                                break;
+                            }
+                        }
+                        if !existsInRet {
+                            uNames.push(col.name);
+                        }
+                    }
+                    if u0Names.length() != uNames.length() {
+                        return error("Union Branches Inconsistent: column count mismatch");
+                    }
+                    foreach int j in 0 ..< u0Names.length() {
+                        if u0Names[j] != uNames[j] {
+                            return error("Union Branches Inconsistent: column names or order mismatch");
+                        }
                     }
                 }
-            }
 
-            // For each Column col in u0, append col to Ret (only new ones)
-            foreach var colName in u0Names {
-                Ret.push({name: colName});
+                foreach string name in u0Names {
+                    ret.push({name: name});
+                }
             }
         }
     }
 
-    return Ret;
+    return ret;
 }
 
 // Function to merge two maps
@@ -301,321 +268,107 @@ isolated function rowProduct(json[][] parts) returns json[]|error {
     return result;
 }
 
-// Helper function to recursively normalize select array items
-isolated function normalizeArrayItems(json[] selects) returns json[]|error {
-    json[] normalizedItems = [];
-    foreach var s in selects {
-        normalizedItems.push(check normalize(s));
-    }
-    return normalizedItems;
+// Determines the evaluation type for a ViewDefinitionSelect node
+isolated function getOperationType(ViewDefinitionSelect sel) returns string {
+    if sel.forEach != () { return "forEach"; }
+    if sel.forEachOrNull != () { return "forEachOrNull"; }
+    if sel.repeat != () { return "repeat"; }
+    if sel.unionAll != () && sel.'select == () && sel.column == () { return "unionAll"; }
+    if sel.column != () && sel.'select == () && sel.unionAll == () { return "column"; }
+    return "select";
 }
 
-isolated function normalize(json def) returns json|error {
-    map<anydata> normalizedDef = check def.cloneWithType();
-
-    if (normalizedDef.hasKey("forEach") || normalizedDef.hasKey("forEachOrNull")) {
-        // Initialize select array if it doesn't exist
-        if (!normalizedDef.hasKey("select")) {
-            normalizedDef["select"] = [];
-        }
-
-        if (normalizedDef.hasKey("forEach")) {
-            normalizedDef["type"] = "forEach";
-        }
-        else {
-            normalizedDef["type"] = "forEachOrNull";
-        }
-
-        // Move unionAll to select if it exists
-        if (normalizedDef.hasKey("unionAll")) {
-            json[] selectArray = check normalizedDef["select"].cloneWithType();
-            json[] newSelect = [{"unionAll": normalizedDef["unionAll"]}.toJson()];
-            newSelect.push(...selectArray);
-            normalizedDef["select"] = newSelect;
-            _ = normalizedDef.remove("unionAll");
-        }
-
-        // Move column to select if it exists
-        if (normalizedDef.hasKey("column")) {
-            json[] selectArray = check normalizedDef["select"].cloneWithType();
-            json[] newSelect = [{"column": normalizedDef["column"]}.toJson()];
-            newSelect.push(...selectArray);
-            normalizedDef["select"] = newSelect;
-            _ = normalizedDef.remove("column");
-        }
-
-        // Recursively normalize each item in select
-        json[] selects = check normalizedDef["select"].cloneWithType();
-        normalizedDef["select"] = check normalizeArrayItems(selects);
-        return normalizedDef.toJson();
-    } else if normalizedDef.hasKey("repeat") {
-        normalizedDef["type"] = "repeat";
-        // Initialize select array if it doesn't exist
-        if (!normalizedDef.hasKey("select")) {
-            normalizedDef["select"] = [];
-        }
-
-        // Move unionAll to select if it exists
-        if (normalizedDef.hasKey("unionAll")) {
-            json[] selectArray = check normalizedDef["select"].cloneWithType();
-            json[] newSelect = [{"unionAll": normalizedDef["unionAll"]}.toJson()];
-            newSelect.push(...selectArray);
-            normalizedDef["select"] = newSelect;
-            _ = normalizedDef.remove("unionAll");
-        }
-
-        // Move column to select if it exists
-        if (normalizedDef.hasKey("column")) {
-            json[] selectArray = check normalizedDef["select"].cloneWithType();
-            json[] newSelect = [{"column": normalizedDef["column"]}.toJson()];
-            newSelect.push(...selectArray);
-            normalizedDef["select"] = newSelect;
-            _ = normalizedDef.remove("column");
-        }
-
-        // Recursively normalize each item in select
-        json[] selects = check normalizedDef["select"].cloneWithType();
-        normalizedDef["select"] = check normalizeArrayItems(selects);
-        return normalizedDef.toJson();
-    } else if normalizedDef.hasKey("select") && normalizedDef.hasKey("column") && normalizedDef.hasKey("unionAll") {
-        // Normalize to select type
-        normalizedDef["type"] = "select";
-        json[] selects = check normalizedDef["select"].cloneWithType();
-        json[] newSelects = [];
-        newSelects.push({"column": normalizedDef["column"]}.toJson());
-        newSelects.push({"unionAll": normalizedDef["unionAll"]}.toJson());
-        newSelects.push(...selects);
-        normalizedDef["select"] = newSelects;
-        _ = normalizedDef.remove("column");
-        _ = normalizedDef.remove("unionAll");
-
-        // Recursively normalize each item in select
-        normalizedDef["select"] = check normalizeArrayItems(newSelects);
-        return normalizedDef.toJson();
-    } else if normalizedDef.hasKey("select") && normalizedDef.hasKey("unionAll") {
-        normalizedDef["type"] = "select";
-        json[] selects = check normalizedDef["select"].cloneWithType();
-        json[] newSelects = [];
-        newSelects.push({"unionAll": normalizedDef["unionAll"]}.toJson());
-        newSelects.push(...selects);
-        normalizedDef["select"] = newSelects;
-        _ = normalizedDef.remove("unionAll");
-
-        // Recursively normalize each item in select
-        normalizedDef["select"] = check normalizeArrayItems(newSelects);
-        return normalizedDef.toJson();
-    } else if normalizedDef.hasKey("select") && normalizedDef.hasKey("column") {
-        normalizedDef["type"] = "select";
-        json[] selects = check normalizedDef["select"].cloneWithType();
-        json[] newSelects = [];
-        newSelects.push({"column": normalizedDef["column"]}.toJson());
-        newSelects.push(...selects);
-        normalizedDef["select"] = newSelects;
-        _ = normalizedDef.remove("column");
-        // Recursively normalize each item in select
-        normalizedDef["select"] = check normalizeArrayItems(newSelects);
-        return normalizedDef.toJson();
-    } else if normalizedDef.hasKey("column") && normalizedDef.hasKey("unionAll") {
-        normalizedDef["type"] = "select";
-        json[] newSelects = [];
-        newSelects.push({"column": normalizedDef["column"]}.toJson());
-        newSelects.push({"unionAll": normalizedDef["unionAll"]}.toJson());
-        normalizedDef["select"] = newSelects;
-        _ = normalizedDef.remove("column");
-        _ = normalizedDef.remove("unionAll");
-        // Recursively normalize each item in select
-        normalizedDef["select"] = check normalizeArrayItems(newSelects);
-        return normalizedDef.toJson();
-    } else if (normalizedDef.hasKey("select")) {
-        normalizedDef["type"] = "select";
-        json[] selects = check normalizedDef["select"].cloneWithType();
-        normalizedDef["select"] = check normalizeArrayItems(selects);
-        return normalizedDef.toJson();
-    } else {
-        if (normalizedDef.hasKey("unionAll")) {
-            normalizedDef["type"] = "unionAll";
-            json[] unionAlls = check normalizedDef["unionAll"].cloneWithType();
-            normalizedDef["unionAll"] = check normalizeArrayItems(unionAlls);
-        }
-        else if (normalizedDef.hasKey("column")) {
-            normalizedDef["type"] = "column";
-        }
-        return normalizedDef.toJson();
+isolated function doEvalTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+    match getOperationType(sel) {
+        "column" => { return columnOperationTyped(sel, node, extensions); }
+        "select" => { return selectOperationTyped(sel, node, extensions); }
+        "forEach" => { return forEachOperationTyped(sel, node, extensions); }
+        "forEachOrNull" => { return forEachOrNullOperationTyped(sel, node, extensions); }
+        "unionAll" => { return unionAllOperationTyped(sel, node, extensions); }
+        "repeat" => { return repeatOperationTyped(sel, node, extensions); }
+        _ => { return []; }
     }
 }
 
-isolated function columnOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function columnOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     map<anydata> result = {};
-    map<anydata> expression = <map<anydata>>selectExpression;
-
-    if (!expression.hasKey("column")) {
-        return error("No column specified in select expression");
-    }
-    map<anydata>[] columns = check expression["column"].cloneWithType();
-    foreach var c in columns {
-        if (!c.hasKey("path") || !(c["path"] is string)) {
-            return error("Path is not specified or is not a string in column expression");
-        }
-
-        // TODO: Replace path expressions with constants specified in the view definition
-        json[] vs = check evaluateFhirPath(node, <string>c["path"], extensions);
-        string recordKey = c.hasKey("name") && (c["name"] is string) ? <string>c["name"] : <string>c["path"];
-
-        if c.hasKey("collection") && c["collection"] is boolean && <boolean>c["collection"] {
-            result[recordKey] = vs;
+    foreach ViewDefinitionSelectColumn c in (sel.column ?: []) {
+        json[] vs = check evaluateFhirPath(node, c.path, extensions);
+        if c.collection ?: false {
+            result[c.name] = vs;
         } else if vs.length() === 1 {
-            result[recordKey] = vs[0];
+            result[c.name] = vs[0];
         } else if vs.length() === 0 {
-            result[recordKey] = ();
-        }
-        else {
-            return error("Collection flag is false for path: " + <string>c["path"]);
+            result[c.name] = ();
+        } else {
+            return error("Collection flag is false for path: " + c.path);
         }
     }
     return [result.toJson()];
 }
 
-isolated function selectOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    map<anydata> expression = <map<anydata>>selectExpression;
-    if (!expression.hasKey("select")) {
-        return error("No select specified in select expression");
+// Evaluates column, unionAll, then select children of a node against the given FHIR node,
+// combining results via rowProduct. Used by select, forEach, forEachOrNull, and repeat operations.
+isolated function evalSelectChildren(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+    json[][] parts = [];
+    if sel.column != () {
+        parts.push(check columnOperationTyped(sel, node, extensions));
     }
-
-    // Filter based on "where" clause conditions
-    if (expression.hasKey("where")) {
-        json[] whereConditions = check expression["where"].cloneWithType();
-        foreach var w in whereConditions {
-            map<anydata> whereCondition = check w.cloneWithType();
-            if (!whereCondition.hasKey("path")) {
-                return error("'where' condition must have a 'path' property");
-            }
-            string wherePath = <string>whereCondition["path"];
-            json[] vals = check evaluateFhirPath(node, wherePath, extensions);
-
-            // Get the first value or null if empty
-            json val = vals.length() > 0 ? vals[0] : ();
-
-            // Assert that the value is either null or boolean
-            if (val !== () && val !is boolean) {
-                return error("'where' expression path should return 'boolean'");
-            }
-
-            // If value is false or null, exclude this node
-            if (val === () || val === false) {
-                return [];
-            }
-        }
+    if sel.unionAll != () {
+        parts.push(check unionAllOperationTyped(sel, node, extensions));
     }
-
-    if (expression.hasKey("resource")) {
-        if (expression["resource"] !== node.resourceType) {
-            return [];
-        }
+    foreach ViewDefinitionSelect childSel in (sel.'select ?: []) {
+        parts.push(check doEvalTyped(childSel, node, extensions));
     }
-    json[][] evalResult = [];
-    foreach var s in <json[]>expression["select"] {
-        json[] partialResult = check doEval(s, node, extensions);
-        evalResult.push(partialResult);
-    }
-
-    return rowProduct(evalResult);
+    return rowProduct(parts);
 }
 
-isolated function forEachOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    map<anydata> expression = <map<anydata>>selectExpression;
+isolated function selectOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+    return evalSelectChildren(sel, node, extensions);
+}
 
-    // Assert forEach is required
-    if (!expression.hasKey("forEach")) {
-        return error("forEach required");
-    }
-
-    string forEachPath = <string>expression["forEach"];
-
-    // Evaluate FHIRPath expression to get nodes
-    json[] nodes = check evaluateFhirPath(node, forEachPath, extensions);
-
+isolated function forEachOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+    json[] nodes = check evaluateFhirPath(node, sel.forEach ?: "", extensions);
     json[] results = [];
-
-    // For each node, apply the select operation
     foreach json nodeItem in nodes {
-        if (expression.hasKey("select")) {
-            json selectExpr = {"select": expression["select"]}.toJson();
-            json[] selectResults = check selectOperation(selectExpr, nodeItem, extensions);
-            results.push(...selectResults);
-        }
+        results.push(...check evalSelectChildren(sel, nodeItem, extensions));
     }
-
     return results;
 }
 
-isolated function forEachOrNullOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    map<anydata> expression = <map<anydata>>selectExpression;
-
-    // Assert forEach is required
-    if (!expression.hasKey("forEachOrNull")) {
-        return error("forEachOrNull required");
-    }
-
-    string forEachOrNullPath = <string>expression["forEachOrNull"];
-
-    // Evaluate FHIRPath expression to get nodes
-    json[] nodes = check evaluateFhirPath(node, forEachOrNullPath, extensions);
+isolated function forEachOrNullOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+    json[] nodes = check evaluateFhirPath(node, sel.forEachOrNull ?: "", extensions);
     if nodes.length() == 0 {
         nodes = [{}];
     }
-
     json[] results = [];
-
-    // For each node, apply the select operation
     foreach json nodeItem in nodes {
-        if (expression.hasKey("select")) {
-            json selectExpr = {"select": expression["select"]}.toJson();
-            json[] selectResults = check selectOperation(selectExpr, nodeItem, extensions);
-            results.push(...selectResults);
-        }
+        results.push(...check evalSelectChildren(sel, nodeItem, extensions));
     }
-
     return results;
 }
 
 // Helper function to check if all results have the same columns
 isolated function arraysUnique(json[] results) returns int {
     map<boolean> uniqueColumnSets = {};
-
     foreach var item in results {
         if item is map<anydata> {
-            // Sort keys and create a string representation
             string columnSet = item.keys().sort().toString();
             uniqueColumnSets[columnSet] = true;
         }
     }
-
     return uniqueColumnSets.length();
 }
 
-isolated function unionAllOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    map<anydata> expression = <map<anydata>>selectExpression;
-
-    // Assert unionAll exists
-    if (!expression.hasKey("unionAll")) {
-        return error("unionAll is required");
-    }
-
-    // FlatMap: evaluate each unionAll element and flatten the results
+isolated function unionAllOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     json[] result = [];
-    foreach var d in <json[]>expression["unionAll"] {
-        json[] partialResult = check doEval(d, node, extensions);
-        result.push(...partialResult);
+    foreach ViewDefinitionSelect branch in (sel.unionAll ?: []) {
+        result.push(...check doEvalTyped(branch, node, extensions));
     }
-
-    // TODO: ideally, this should be done during the validation
-    // Validate that all results have the same columns
     int uniqueCount = arraysUnique(result);
-
     if uniqueCount > 1 {
         return error(string `Union columns mismatch: found ${uniqueCount} different column sets`);
     }
-
     return result;
 }
 
@@ -628,13 +381,9 @@ isolated function traverse(json currentNode, string[] paths, json[] result, bool
 
     // Recursively traverse using each path expression
     foreach string path in paths {
-        // TODO: Replace path expressions with constants specified in the view definition
-
-        // Evaluate FHIRPath expression to get child nodes
         json[] childNodes = check evaluateFhirPath(currentNode, path, extensions);
-
         foreach json childNode in childNodes {
-            // Only traverse if it's an object (map)
+            // Only traverse if it's not an array
             if childNode !is json[] {
                 check traverse(childNode, paths, result, false, extensions);
             }
@@ -643,96 +392,64 @@ isolated function traverse(json currentNode, string[] paths, json[] result, bool
 }
 
 // Recursively traverse a FHIR node using path expressions
-isolated function recursiveTraverse(string[] paths, json node, map<anydata> def, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function recursiveTraverse(string[] paths, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     json[] result = [];
-
-    // Start traversal from root node
     check traverse(node, paths, result, true, extensions);
-
     return result;
 }
 
-isolated function repeatOperation(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    map<anydata> expression = <map<anydata>>selectExpression;
-
-    // Assert repeat exists
-    if !expression.hasKey("repeat") {
-        return error("repeat is required");
-    }
-    // Repeat must be an array
-    if expression["repeat"] !is anydata[] {
-        return error("repeat must be an array");
-    }
-
-    // Use recursiveTraverse to get all nodes at all depths.
-    string[] paths = check expression["repeat"].cloneWithType();
-    var nodes = check recursiveTraverse(paths, node, expression, extensions);
+isolated function repeatOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+    json[] nodes = check recursiveTraverse(sel.repeat ?: [], node, extensions);
     json[] results = [];
-
-    // For each node, apply the select operation
     foreach json nodeItem in nodes {
-        json selectExpr = {"select": expression["select"]}.toJson();
-        json[] selectResults = check selectOperation(selectExpr, nodeItem, extensions);
-        results.push(...selectResults);
+        results.push(...check evalSelectChildren(sel, nodeItem, extensions));
     }
     return results;
-}
-
-isolated function doEval(json selectExpression, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-
-    match check selectExpression.'type {
-        "column" =>
-        {
-            return columnOperation(selectExpression, node, extensions);
-        }
-        "select" =>
-        {
-            return selectOperation(selectExpression, node, extensions);
-        }
-        "forEach" =>
-        {
-            return forEachOperation(selectExpression, node, extensions);
-        }
-        "forEachOrNull" =>
-        {
-            return forEachOrNullOperation(selectExpression, node, extensions);
-        }
-        "unionAll" =>
-        {
-            return unionAllOperation(selectExpression, node, extensions);
-        }
-        "repeat" =>
-        {
-            return repeatOperation(selectExpression, node, extensions);
-        }
-        _ =>
-        {
-            return [];
-        }
-    }
-
 }
 
 # Evaluates FHIR resources against a view definition
 # + resources - Array of FHIR resources to evaluate
-# + viewDefinition - The view definition JSON
+# + viewDefinition - The view definition
 # + extensions - Optional custom FHIRPath extension functions (getResourceKey, getReferenceKey)
 # + return - Array of result rows or error
-public isolated function evaluate(json[] resources, json viewDefinition, FhirPathExtensions? extensions = ()) returns json[]|error {
-    // Validate view definition structure
-    _ = check validateColumns(viewDefinition, []);
-
-    json noramalDef = check normalize(viewDefinition.clone());
+public isolated function evaluate(json[] resources, ViewDefinition viewDefinition, FhirPathExtensions? extensions = ()) returns json[]|error {
+    _ = check validateColumnsTyped(viewDefinition.'select, []);
 
     json[] results = [];
     foreach json 'resource in resources {
-        json[] evalResult = check doEval(noramalDef, 'resource, extensions);
-        // Accumulate results
-        foreach var result in evalResult {
-            results.push(result);
+        // Filter by resource type
+        if 'resource is map<json> {
+            if 'resource["resourceType"] != viewDefinition.'resource {
+                continue;
+            }
+        } else {
+            continue;
         }
+
+        // Apply top-level where filters
+        boolean include = true;
+        foreach ViewDefinitionWhere w in (viewDefinition.'where ?: []) {
+            json[] vals = check evaluateFhirPath('resource, w.path, extensions);
+            json val = vals.length() > 0 ? vals[0] : ();
+            if val !== () && val !is boolean {
+                return error("'where' expression path should return 'boolean'");
+            }
+            if val === () || val === false {
+                include = false;
+                break;
+            }
+        }
+        if !include {
+            continue;
+        }
+
+        // Evaluate each top-level select and combine via row product
+        json[][] parts = [];
+        foreach ViewDefinitionSelect sel in viewDefinition.'select {
+            parts.push(check doEvalTyped(sel, 'resource, extensions));
+        }
+        results.push(...check rowProduct(parts));
     }
 
     return results;
 }
-

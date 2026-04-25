@@ -53,16 +53,16 @@ json[] fhirpathResources = [
 
 @test:Config {}
 function testOneElement() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             }
@@ -84,16 +84,16 @@ function testOneElement() returns error? {
 
 @test:Config {}
 function testTwoElementsFirst() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "v",
-                        "path": "name.family.first()",
-                        "type": "string"
+                        name: "v",
+                        path: "name.family.first()",
+                        'type: "string"
                     }
                 ]
             }
@@ -115,17 +115,17 @@ function testTwoElementsFirst() returns error? {
 
 @test:Config {}
 function testCollection() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "v",
-                        "path": "name.family",
-                        "type": "string",
-                        "collection": true
+                        name: "v",
+                        path: "name.family",
+                        'type: "string",
+                        collection: true
                     }
                 ]
             }
@@ -153,16 +153,16 @@ function testCollection() returns error? {
 
 @test:Config {}
 function testIndex0() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "v",
-                        "path": "name[0].family",
-                        "type": "string"
+                        name: "v",
+                        path: "name[0].family",
+                        'type: "string"
                     }
                 ]
             }
@@ -184,16 +184,16 @@ function testIndex0() returns error? {
 
 @test:Config {}
 function testIndex1() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "v",
-                        "path": "name[1].family",
-                        "type": "string"
+                        name: "v",
+                        path: "name[1].family",
+                        'type: "string"
                     }
                 ]
             }
@@ -215,16 +215,16 @@ function testIndex1() returns error? {
 
 @test:Config {}
 function testOutOfIndex() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "v",
-                        "path": "name[2].family",
-                        "type": "string"
+                        name: "v",
+                        path: "name[2].family",
+                        'type: "string"
                     }
                 ]
             }
@@ -246,16 +246,16 @@ function testOutOfIndex() returns error? {
 
 @test:Config {}
 function testWhere() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "v",
-                        "path": "name.where(use='official').family",
-                        "type": "string"
+                        name: "v",
+                        path: "name.where(use='official').family",
+                        'type: "string"
                     }
                 ]
             }
@@ -277,21 +277,21 @@ function testWhere() returns error? {
 
 @test:Config {}
 function testExists() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "has_name",
-                        "path": "name.exists()",
-                        "type": "boolean"
+                        name: "has_name",
+                        path: "name.exists()",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -316,21 +316,21 @@ function testExists() returns error? {
 
 @test:Config {}
 function testNestedExists() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "has_given",
-                        "path": "name.given.exists()",
-                        "type": "boolean"
+                        name: "has_given",
+                        path: "name.given.exists()",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -355,21 +355,21 @@ function testNestedExists() returns error? {
 
 @test:Config {}
 function testStringJoin() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "given",
-                        "path": "name.given.join(', ' )",
-                        "type": "string"
+                        name: "given",
+                        path: "name.given.join(', ' )",
+                        'type: "string"
                     }
                 ]
             }
@@ -394,21 +394,21 @@ function testStringJoin() returns error? {
 
 @test:Config {}
 function testStringJoinDefaultSeparator() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "given",
-                        "path": "name.given.join()",
-                        "type": "string"
+                        name: "given",
+                        path: "name.given.join()",
+                        'type: "string"
                     }
                 ]
             }

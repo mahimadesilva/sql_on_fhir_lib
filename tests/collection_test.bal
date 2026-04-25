@@ -57,28 +57,28 @@ json[] collectionResources = [
 
 @test:Config {}
 function testFailWhenCollectionIsNotTrue() {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "last_name",
-                        "path": "name.family",
-                        "type": "string",
-                        "collection": false
+                        name: "last_name",
+                        path: "name.family",
+                        'type: "string",
+                        collection: false
                     },
                     {
-                        "name": "first_name",
-                        "path": "name.given",
-                        "type": "string",
-                        "collection": true
+                        name: "first_name",
+                        path: "name.given",
+                        'type: "string",
+                        collection: true
                     }
                 ]
             }
@@ -90,28 +90,28 @@ function testFailWhenCollectionIsNotTrue() {
 
 @test:Config {}
 function testCollectionTrue() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "last_name",
-                        "path": "name.family",
-                        "type": "string",
-                        "collection": true
+                        name: "last_name",
+                        path: "name.family",
+                        'type: "string",
+                        collection: true
                     },
                     {
-                        "name": "first_name",
-                        "path": "name.given",
-                        "type": "string",
-                        "collection": true
+                        name: "first_name",
+                        path: "name.given",
+                        'type: "string",
+                        collection: true
                     }
                 ]
             }
@@ -148,33 +148,33 @@ function testCollectionTrue() returns error? {
 
 @test:Config {}
 function testCollectionFalseRelativeToForeachParent() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ],
-                "select": [
+                'select: [
                     {
-                        "forEach": "name",
-                        "column": [
+                        forEach: "name",
+                        column: [
                             {
-                                "name": "last_name",
-                                "path": "family",
-                                "type": "string",
-                                "collection": false
+                                name: "last_name",
+                                path: "family",
+                                'type: "string",
+                                collection: false
                             },
                             {
-                                "name": "first_name",
-                                "path": "given",
-                                "type": "string",
-                                "collection": true
+                                name: "first_name",
+                                path: "given",
+                                'type: "string",
+                                collection: true
                             }
                         ]
                     }
@@ -219,33 +219,33 @@ function testCollectionFalseRelativeToForeachParent() returns error? {
 
 @test:Config {}
 function testCollectionFalseRelativeToForeachornullParent() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ],
-                "select": [
+                'select: [
                     {
-                        "forEach": "name",
-                        "column": [
+                        forEach: "name",
+                        column: [
                             {
-                                "name": "last_name",
-                                "path": "family",
-                                "type": "string",
-                                "collection": false
+                                name: "last_name",
+                                path: "family",
+                                'type: "string",
+                                collection: false
                             },
                             {
-                                "name": "first_name",
-                                "path": "given",
-                                "type": "string",
-                                "collection": true
+                                name: "first_name",
+                                path: "given",
+                                'type: "string",
+                                collection: true
                             }
                         ]
                     }

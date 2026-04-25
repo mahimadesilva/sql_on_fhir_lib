@@ -34,21 +34,21 @@ json[] fnOftypeResources = [
 
 @test:Config {}
 function testSelectStringValues() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "path": "id",
-                        "name": "id",
-                        "type": "id"
+                        path: "id",
+                        name: "id",
+                        'type: "id"
                     },
                     {
-                        "path": "value.ofType(string)",
-                        "name": "string_value",
-                        "type": "string"
+                        path: "value.ofType(string)",
+                        name: "string_value",
+                        'type: "string"
                     }
                 ]
             }
@@ -73,21 +73,21 @@ function testSelectStringValues() returns error? {
 
 @test:Config {}
 function testSelectIntegerValues() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "path": "id",
-                        "name": "id",
-                        "type": "id"
+                        path: "id",
+                        name: "id",
+                        'type: "id"
                     },
                     {
-                        "path": "value.ofType(integer)",
-                        "name": "integer_value",
-                        "type": "integer"
+                        path: "value.ofType(integer)",
+                        name: "integer_value",
+                        'type: "integer"
                     }
                 ]
             }

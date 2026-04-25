@@ -49,21 +49,21 @@ json[] fnBoundaryResources = [
 
 @test:Config {}
 function testDecimalLowboundary() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "decimal",
-                        "path": "value.ofType(Quantity).value.lowBoundary()",
-                        "type": "decimal"
+                        name: "decimal",
+                        path: "value.ofType(Quantity).value.lowBoundary()",
+                        'type: "decimal"
                     }
                 ]
             }
@@ -92,21 +92,21 @@ function testDecimalLowboundary() returns error? {
 
 @test:Config {}
 function testDecimalHighboundary() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "decimal",
-                        "path": "value.ofType(Quantity).value.highBoundary()",
-                        "type": "decimal"
+                        name: "decimal",
+                        path: "value.ofType(Quantity).value.highBoundary()",
+                        'type: "decimal"
                     }
                 ]
             }
@@ -135,21 +135,21 @@ function testDecimalHighboundary() returns error? {
 
 @test:Config {}
 function testDatetimeLowboundary() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "datetime",
-                        "path": "value.ofType(dateTime).lowBoundary()",
-                        "type": "dateTime"
+                        name: "datetime",
+                        path: "value.ofType(dateTime).lowBoundary()",
+                        'type: "dateTime"
                     }
                 ]
             }
@@ -178,21 +178,21 @@ function testDatetimeLowboundary() returns error? {
 
 @test:Config {}
 function testDatetimeHighboundary() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "datetime",
-                        "path": "value.ofType(dateTime).highBoundary()",
-                        "type": "dateTime"
+                        name: "datetime",
+                        path: "value.ofType(dateTime).highBoundary()",
+                        'type: "dateTime"
                     }
                 ]
             }
@@ -221,21 +221,21 @@ function testDatetimeHighboundary() returns error? {
 
 @test:Config {}
 function testDateLowboundary() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "date",
-                        "path": "birthDate.lowBoundary()",
-                        "type": "date"
+                        name: "date",
+                        path: "birthDate.lowBoundary()",
+                        'type: "date"
                     }
                 ]
             }
@@ -252,21 +252,21 @@ function testDateLowboundary() returns error? {
 
 @test:Config {}
 function testDateHighboundary() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "date",
-                        "path": "birthDate.highBoundary()",
-                        "type": "date"
+                        name: "date",
+                        path: "birthDate.highBoundary()",
+                        'type: "date"
                     }
                 ]
             }
@@ -283,21 +283,21 @@ function testDateHighboundary() returns error? {
 
 @test:Config {}
 function testTimeLowboundary() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "time",
-                        "path": "value.ofType(time).lowBoundary()",
-                        "type": "time"
+                        name: "time",
+                        path: "value.ofType(time).lowBoundary()",
+                        'type: "time"
                     }
                 ]
             }
@@ -326,21 +326,21 @@ function testTimeLowboundary() returns error? {
 
 @test:Config {}
 function testTimeHighboundary() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "time",
-                        "path": "value.ofType(time).highBoundary()",
-                        "type": "time"
+                        name: "time",
+                        path: "value.ofType(time).highBoundary()",
+                        'type: "time"
                     }
                 ]
             }

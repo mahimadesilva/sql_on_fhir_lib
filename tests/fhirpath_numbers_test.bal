@@ -24,61 +24,61 @@ json[] fhirpathNumbersResources = [
 
 @test:Config {}
 function testAddObservation() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "add",
-                        "path": "value.ofType(Range).low.value + value.ofType(Range).high.value",
-                        "type": "decimal"
+                        name: "add",
+                        path: "value.ofType(Range).low.value + value.ofType(Range).high.value",
+                        'type: "decimal"
                     },
                     {
-                        "name": "sub",
-                        "path": "value.ofType(Range).high.value - value.ofType(Range).low.value",
-                        "type": "decimal"
+                        name: "sub",
+                        path: "value.ofType(Range).high.value - value.ofType(Range).low.value",
+                        'type: "decimal"
                     },
                     {
-                        "name": "mul",
-                        "path": "value.ofType(Range).low.value * value.ofType(Range).high.value",
-                        "type": "decimal"
+                        name: "mul",
+                        path: "value.ofType(Range).low.value * value.ofType(Range).high.value",
+                        'type: "decimal"
                     },
                     {
-                        "name": "div",
-                        "path": "value.ofType(Range).high.value / value.ofType(Range).low.value",
-                        "type": "decimal"
+                        name: "div",
+                        path: "value.ofType(Range).high.value / value.ofType(Range).low.value",
+                        'type: "decimal"
                     },
                     {
-                        "name": "eq",
-                        "path": "value.ofType(Range).high.value = value.ofType(Range).low.value",
-                        "type": "boolean"
+                        name: "eq",
+                        path: "value.ofType(Range).high.value = value.ofType(Range).low.value",
+                        'type: "boolean"
                     },
                     {
-                        "name": "gt",
-                        "path": "value.ofType(Range).high.value > value.ofType(Range).low.value",
-                        "type": "boolean"
+                        name: "gt",
+                        path: "value.ofType(Range).high.value > value.ofType(Range).low.value",
+                        'type: "boolean"
                     },
                     {
-                        "name": "ge",
-                        "path": "value.ofType(Range).high.value >= value.ofType(Range).low.value",
-                        "type": "boolean"
+                        name: "ge",
+                        path: "value.ofType(Range).high.value >= value.ofType(Range).low.value",
+                        'type: "boolean"
                     },
                     {
-                        "name": "lt",
-                        "path": "value.ofType(Range).high.value < value.ofType(Range).low.value",
-                        "type": "boolean"
+                        name: "lt",
+                        path: "value.ofType(Range).high.value < value.ofType(Range).low.value",
+                        'type: "boolean"
                     },
                     {
-                        "name": "le",
-                        "path": "value.ofType(Range).high.value <= value.ofType(Range).low.value",
-                        "type": "boolean"
+                        name: "le",
+                        path: "value.ofType(Range).high.value <= value.ofType(Range).low.value",
+                        'type: "boolean"
                     }
                 ]
             }

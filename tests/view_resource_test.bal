@@ -24,16 +24,16 @@ json[] viewResourceResources = [
 
 @test:Config {}
 function testOnlyPts() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "path": "id",
-                        "name": "id",
-                        "type": "id"
+                        path: "id",
+                        name: "id",
+                        'type: "id"
                     }
                 ]
             }
@@ -52,16 +52,16 @@ function testOnlyPts() returns error? {
 
 @test:Config {}
 function testOnlyObs() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "path": "id",
-                        "name": "id",
-                        "type": "id"
+                        path: "id",
+                        name: "id",
+                        'type: "id"
                     }
                 ]
             }
@@ -75,22 +75,3 @@ function testOnlyObs() returns error? {
     json[] result = check evaluate(viewResourceResources, view);
     test:assertEquals(result, expected);}
 
-@test:Config {}
-function testResourceNotSpecified() {
-    json view = {
-        "status": "active",
-        "select": [
-            {
-                "column": [
-                    {
-                        "path": "id",
-                        "name": "id",
-                        "type": "id"
-                    }
-                ]
-            }
-        ]
-    };
-    json[]|error result = evaluate(viewResourceResources, view);
-    test:assertTrue(result is error, msg = "Expected an error for: resource not specified");
-}

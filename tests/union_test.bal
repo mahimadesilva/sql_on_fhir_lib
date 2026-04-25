@@ -92,48 +92,48 @@ json[] unionResources = [
 
 @test:Config {}
 function testBasic2() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "telecom",
-                        "column": [
+                        forEach: "telecom",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             },
                             {
-                                "name": "sys",
-                                "path": "system",
-                                "type": "code"
+                                name: "sys",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     },
                     {
-                        "forEach": "contact.telecom",
-                        "column": [
+                        forEach: "contact.telecom",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             },
                             {
-                                "name": "sys",
-                                "path": "system",
-                                "type": "code"
+                                name: "sys",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     }
@@ -203,46 +203,46 @@ function testBasic2() returns error? {
 
 @test:Config {}
 function testUnionallColumn() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ],
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "telecom",
-                        "column": [
+                        forEach: "telecom",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             },
                             {
-                                "name": "sys",
-                                "path": "system",
-                                "type": "code"
+                                name: "sys",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     },
                     {
-                        "forEach": "contact.telecom",
-                        "column": [
+                        forEach: "contact.telecom",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             },
                             {
-                                "name": "sys",
-                                "path": "system",
-                                "type": "code"
+                                name: "sys",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     }
@@ -312,46 +312,46 @@ function testUnionallColumn() returns error? {
 
 @test:Config {}
 function testDuplicates() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ],
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "telecom",
-                        "column": [
+                        forEach: "telecom",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             },
                             {
-                                "name": "sys",
-                                "path": "system",
-                                "type": "code"
+                                name: "sys",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     },
                     {
-                        "forEach": "telecom",
-                        "column": [
+                        forEach: "telecom",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             },
                             {
-                                "name": "sys",
-                                "path": "system",
-                                "type": "code"
+                                name: "sys",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     }
@@ -416,36 +416,36 @@ function testDuplicates() returns error? {
 
 @test:Config {}
 function testEmptyResults() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ],
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "name",
-                        "column": [
+                        forEach: "name",
+                        column: [
                             {
-                                "name": "given",
-                                "path": "given",
-                                "type": "string"
+                                name: "given",
+                                path: "given",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "forEach": "name",
-                        "column": [
+                        forEach: "name",
+                        column: [
                             {
-                                "name": "given",
-                                "path": "given",
-                                "type": "string"
+                                name: "given",
+                                path: "given",
+                                'type: "string"
                             }
                         ]
                     }
@@ -459,36 +459,36 @@ function testEmptyResults() returns error? {
 
 @test:Config {}
 function testEmptyWithForeachornull() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ],
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEachOrNull": "name",
-                        "column": [
+                        forEachOrNull: "name",
+                        column: [
                             {
-                                "name": "given",
-                                "path": "given",
-                                "type": "string"
+                                name: "given",
+                                path: "given",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "forEachOrNull": "name",
-                        "column": [
+                        forEachOrNull: "name",
+                        column: [
                             {
-                                "name": "given",
-                                "path": "given",
-                                "type": "string"
+                                name: "given",
+                                path: "given",
+                                'type: "string"
                             }
                         ]
                     }
@@ -535,36 +535,36 @@ function testEmptyWithForeachornull() returns error? {
 
 @test:Config {}
 function testForeachornullAndForeach() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ],
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "name",
-                        "column": [
+                        forEach: "name",
+                        column: [
                             {
-                                "name": "given",
-                                "path": "given",
-                                "type": "string"
+                                name: "given",
+                                path: "given",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "forEachOrNull": "name",
-                        "column": [
+                        forEachOrNull: "name",
+                        column: [
                             {
-                                "name": "given",
-                                "path": "given",
-                                "type": "string"
+                                name: "given",
+                                path: "given",
+                                'type: "string"
                             }
                         ]
                     }
@@ -595,48 +595,48 @@ function testForeachornullAndForeach() returns error? {
 
 @test:Config {}
 function testNested() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ],
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "telecom[0]",
-                        "column": [
+                        forEach: "telecom[0]",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "unionAll": [
+                        unionAll: [
                             {
-                                "forEach": "telecom[0]",
-                                "column": [
+                                forEach: "telecom[0]",
+                                column: [
                                     {
-                                        "name": "tel",
-                                        "path": "value",
-                                        "type": "string"
+                                        name: "tel",
+                                        path: "value",
+                                        'type: "string"
                                     }
                                 ]
                             },
                             {
-                                "forEach": "contact.telecom[0]",
-                                "column": [
+                                forEach: "contact.telecom[0]",
+                                column: [
                                     {
-                                        "name": "tel",
-                                        "path": "value",
-                                        "type": "string"
+                                        name: "tel",
+                                        path: "value",
+                                        'type: "string"
                                     }
                                 ]
                             }
@@ -677,48 +677,48 @@ function testNested() returns error? {
 
 @test:Config {}
 function testOneEmptyOperand() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "telecom.where(false)",
-                        "column": [
+                        forEach: "telecom.where(false)",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             },
                             {
-                                "name": "sys",
-                                "path": "system",
-                                "type": "code"
+                                name: "sys",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     },
                     {
-                        "forEach": "contact.telecom",
-                        "column": [
+                        forEach: "contact.telecom",
+                        column: [
                             {
-                                "name": "tel",
-                                "path": "value",
-                                "type": "string"
+                                name: "tel",
+                                path: "value",
+                                'type: "string"
                             },
                             {
-                                "name": "sys",
-                                "path": "system",
-                                "type": "code"
+                                name: "sys",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     }
@@ -763,37 +763,37 @@ function testOneEmptyOperand() returns error? {
 
 @test:Config {}
 function testColumnMismatch() {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "unionAll": [
+                unionAll: [
                     {
-                        "column": [
+                        column: [
                             {
-                                "name": "a",
-                                "path": "id",
-                                "type": "id"
+                                name: "a",
+                                path: "id",
+                                'type: "id"
                             },
                             {
-                                "name": "b",
-                                "path": "id",
-                                "type": "id"
+                                name: "b",
+                                path: "id",
+                                'type: "id"
                             }
                         ]
                     },
                     {
-                        "column": [
+                        column: [
                             {
-                                "name": "a",
-                                "path": "id",
-                                "type": "id"
+                                name: "a",
+                                path: "id",
+                                'type: "id"
                             },
                             {
-                                "name": "c",
-                                "path": "id",
-                                "type": "id"
+                                name: "c",
+                                path: "id",
+                                'type: "id"
                             }
                         ]
                     }
@@ -807,37 +807,37 @@ function testColumnMismatch() {
 
 @test:Config {}
 function testColumnOrderMismatch() {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "unionAll": [
+                unionAll: [
                     {
-                        "column": [
+                        column: [
                             {
-                                "name": "a",
-                                "path": "id",
-                                "type": "id"
+                                name: "a",
+                                path: "id",
+                                'type: "id"
                             },
                             {
-                                "name": "b",
-                                "path": "id",
-                                "type": "id"
+                                name: "b",
+                                path: "id",
+                                'type: "id"
                             }
                         ]
                     },
                     {
-                        "column": [
+                        column: [
                             {
-                                "name": "b",
-                                "path": "id",
-                                "type": "id"
+                                name: "b",
+                                path: "id",
+                                'type: "id"
                             },
                             {
-                                "name": "a",
-                                "path": "id",
-                                "type": "id"
+                                name: "a",
+                                path: "id",
+                                'type: "id"
                             }
                         ]
                     }

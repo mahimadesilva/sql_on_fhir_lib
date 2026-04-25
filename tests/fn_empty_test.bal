@@ -22,21 +22,21 @@ json[] fnEmptyResources = [
 
 @test:Config {}
 function testEmptyNames() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "name_empty",
-                        "path": "name.empty()",
-                        "type": "boolean"
+                        name: "name_empty",
+                        path: "name.empty()",
+                        'type: "boolean"
                     }
                 ]
             }

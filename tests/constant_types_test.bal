@@ -354,27 +354,27 @@ json[] constantTypesResources = [
 
 @test:Config {}
 function testBase64binary() returns error? {
-    json view = {
-        "resource": "Device",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Device",
+        status: "active",
+        constant: [
             {
-                "name": "aidc",
-                "valueBase64Binary": "aGVsbG8K"
+                name: "aidc",
+                valueBase64Binary: "aGVsbG8K"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "aidc",
-                        "path": "udiCarrier.first().carrierAIDC = %aidc",
-                        "type": "boolean"
+                        name: "aidc",
+                        path: "udiCarrier.first().carrierAIDC = %aidc",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -399,27 +399,27 @@ function testBase64binary() returns error? {
 
 @test:Config {}
 function testCode() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "gender",
-                "valueCode": "female"
+                name: "gender",
+                valueCode: "female"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "gender = %gender",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "gender = %gender",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -444,27 +444,27 @@ function testCode() returns error? {
 
 @test:Config {}
 function testDate() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        constant: [
             {
-                "name": "bd",
-                "valueDate": "1978-03-12"
+                name: "bd",
+                valueDate: "1978-03-12"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "birthDate = %bd",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "birthDate = %bd",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -489,27 +489,27 @@ function testDate() returns error? {
 
 @test:Config {}
 function testDatetime() returns error? {
-    json view = {
-        "resource": "DetectedIssue",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "DetectedIssue",
+        status: "active",
+        constant: [
             {
-                "name": "id_time",
-                "valueDateTime": "2016-11-12"
+                name: "id_time",
+                valueDateTime: "2016-11-12"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "identified.ofType(dateTime) = %id_time",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "identified.ofType(dateTime) = %id_time",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -534,27 +534,27 @@ function testDatetime() returns error? {
 
 @test:Config {}
 function testDecimal() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        constant: [
             {
-                "name": "v",
-                "valueDecimal": 1.2
+                name: "v",
+                valueDecimal: 1.2
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "value.ofType(Quantity).value < %v",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "value.ofType(Quantity).value < %v",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -587,27 +587,27 @@ function testDecimal() returns error? {
 
 @test:Config {}
 function testId() returns error? {
-    json view = {
-        "resource": "Task",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Task",
+        status: "active",
+        constant: [
             {
-                "name": "id",
-                "valueId": "id1"
+                name: "id",
+                valueId: "id1"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "output.first().value.ofType(id) = %id",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "output.first().value.ofType(id) = %id",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -656,27 +656,27 @@ function testId() returns error? {
 
 @test:Config {}
 function testInstant() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        constant: [
             {
-                "name": "eff",
-                "valueInstant": "2015-02-07T13:28:17.239+02:00"
+                name: "eff",
+                valueInstant: "2015-02-07T13:28:17.239+02:00"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "effective.ofType(instant) = %eff",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "effective.ofType(instant) = %eff",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -709,27 +709,27 @@ function testInstant() returns error? {
 
 @test:Config {}
 function testOid() returns error? {
-    json view = {
-        "resource": "Task",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Task",
+        status: "active",
+        constant: [
             {
-                "name": "oid",
-                "valueOid": "urn:oid:1.0"
+                name: "oid",
+                valueOid: "urn:oid:1.0"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "output.first().value.ofType(oid) = %oid",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "output.first().value.ofType(oid) = %oid",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -778,27 +778,27 @@ function testOid() returns error? {
 
 @test:Config {}
 function testPositiveint() returns error? {
-    json view = {
-        "resource": "ClaimResponse",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "ClaimResponse",
+        status: "active",
+        constant: [
             {
-                "name": "seq",
-                "valuePositiveInt": 1
+                name: "seq",
+                valuePositiveInt: 1
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "item.first().itemSequence = %seq",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "item.first().itemSequence = %seq",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -823,27 +823,27 @@ function testPositiveint() returns error? {
 
 @test:Config {}
 function testTime() returns error? {
-    json view = {
-        "resource": "Observation",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Observation",
+        status: "active",
+        constant: [
             {
-                "name": "t",
-                "valueTime": "18:12:00"
+                name: "t",
+                valueTime: "18:12:00"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "value.ofType(time) = %t",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "value.ofType(time) = %t",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -876,27 +876,27 @@ function testTime() returns error? {
 
 @test:Config {}
 function testUnsignedint() returns error? {
-    json view = {
-        "resource": "ImagingStudy",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "ImagingStudy",
+        status: "active",
+        constant: [
             {
-                "name": "series",
-                "valueUnsignedInt": 9
+                name: "series",
+                valueUnsignedInt: 9
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "numberOfSeries = %series",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "numberOfSeries = %series",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -921,27 +921,27 @@ function testUnsignedint() returns error? {
 
 @test:Config {}
 function testUri() returns error? {
-    json view = {
-        "resource": "Measure",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Measure",
+        status: "active",
+        constant: [
             {
-                "name": "uri",
-                "valueUri": "urn:uuid:53fefa32-fcbb-4ff8-8a92-55ee120877b7"
+                name: "uri",
+                valueUri: "urn:uuid:53fefa32-fcbb-4ff8-8a92-55ee120877b7"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "url = %uri",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "url = %uri",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -966,27 +966,27 @@ function testUri() returns error? {
 
 @test:Config {}
 function testUrl() returns error? {
-    json view = {
-        "resource": "Task",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Task",
+        status: "active",
+        constant: [
             {
-                "name": "url",
-                "valueUrl": "http://example.org"
+                name: "url",
+                valueUrl: "http://example.org"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "output.first().value.ofType(url) = %url",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "output.first().value.ofType(url) = %url",
+                        'type: "boolean"
                     }
                 ]
             }
@@ -1035,27 +1035,27 @@ function testUrl() returns error? {
 
 @test:Config {}
 function testUuid() returns error? {
-    json view = {
-        "resource": "Task",
-        "status": "active",
-        "constant": [
+    ViewDefinition view = {
+        'resource: "Task",
+        status: "active",
+        constant: [
             {
-                "name": "uuid",
-                "valueUuid": "urn:uuid:53fefa32-fcbb-4ff8-8a92-55ee120877b7"
+                name: "uuid",
+                valueUuid: "urn:uuid:53fefa32-fcbb-4ff8-8a92-55ee120877b7"
             }
         ],
-        "select": [
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "bool",
-                        "path": "output.first().value.ofType(uuid) = %uuid",
-                        "type": "boolean"
+                        name: "bool",
+                        path: "output.first().value.ofType(uuid) = %uuid",
+                        'type: "boolean"
                     }
                 ]
             }

@@ -49,33 +49,33 @@ json[] repeatResources = [
 
 @test:Config {}
 function testBasic() returns error? {
-    json view = {
-        "resource": "QuestionnaireResponse",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "QuestionnaireResponse",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "repeat": [
+                'repeat: [
                     "item"
                 ],
-                "column": [
+                column: [
                     {
-                        "name": "linkId",
-                        "path": "linkId",
-                        "type": "string"
+                        name: "linkId",
+                        path: "linkId",
+                        'type: "string"
                     },
                     {
-                        "name": "text",
-                        "path": "text",
-                        "type": "string"
+                        name: "text",
+                        path: "text",
+                        'type: "string"
                     }
                 ]
             }
@@ -113,34 +113,34 @@ function testBasic() returns error? {
 
 @test:Config {}
 function testItemAndAnswerItem() returns error? {
-    json view = {
-        "resource": "QuestionnaireResponse",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "QuestionnaireResponse",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "repeat": [
+                'repeat: [
                     "item",
                     "answer.item"
                 ],
-                "column": [
+                column: [
                     {
-                        "name": "linkId",
-                        "path": "linkId",
-                        "type": "string"
+                        name: "linkId",
+                        path: "linkId",
+                        'type: "string"
                     },
                     {
-                        "name": "text",
-                        "path": "text",
-                        "type": "string"
+                        name: "text",
+                        path: "text",
+                        'type: "string"
                     }
                 ]
             }
@@ -183,28 +183,28 @@ function testItemAndAnswerItem() returns error? {
 
 @test:Config {}
 function testEmptyExpression() returns error? {
-    json view = {
-        "resource": "QuestionnaireResponse",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "QuestionnaireResponse",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "repeat": [
+                'repeat: [
                     "jurisdiction"
                 ],
-                "column": [
+                column: [
                     {
-                        "name": "code",
-                        "path": "coding.code",
-                        "type": "code"
+                        name: "code",
+                        path: "coding.code",
+                        'type: "code"
                     }
                 ]
             }
@@ -216,33 +216,33 @@ function testEmptyExpression() returns error? {
 
 @test:Config {}
 function testEmptyChildExpression() returns error? {
-    json view = {
-        "resource": "QuestionnaireResponse",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "QuestionnaireResponse",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "repeat": [
+                'repeat: [
                     "item"
                 ],
-                "column": [
+                column: [
                     {
-                        "name": "linkId",
-                        "path": "linkId",
-                        "type": "string"
+                        name: "linkId",
+                        path: "linkId",
+                        'type: "string"
                     },
                     {
-                        "name": "definition",
-                        "path": "definition",
-                        "type": "uri"
+                        name: "definition",
+                        path: "definition",
+                        'type: "uri"
                     }
                 ]
             }
@@ -280,40 +280,40 @@ function testEmptyChildExpression() returns error? {
 
 @test:Config {}
 function testCombinedWithForeach() returns error? {
-    json view = {
-        "resource": "QuestionnaireResponse",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "QuestionnaireResponse",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "repeat": [
+                'repeat: [
                     "item"
                 ],
-                "select": [
+                'select: [
                     {
-                        "column": [
+                        column: [
                             {
-                                "name": "linkId",
-                                "path": "linkId",
-                                "type": "string"
+                                name: "linkId",
+                                path: "linkId",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "forEach": "answer",
-                        "column": [
+                        forEach: "answer",
+                        column: [
                             {
-                                "name": "answerValue",
-                                "path": "value.ofType(string)",
-                                "type": "string"
+                                name: "answerValue",
+                                path: "value.ofType(string)",
+                                'type: "string"
                             }
                         ]
                     }
@@ -333,40 +333,40 @@ function testCombinedWithForeach() returns error? {
 
 @test:Config {}
 function testCombinedWithForeachornull() returns error? {
-    json view = {
-        "resource": "QuestionnaireResponse",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "QuestionnaireResponse",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "repeat": [
+                'repeat: [
                     "item"
                 ],
-                "select": [
+                'select: [
                     {
-                        "column": [
+                        column: [
                             {
-                                "name": "linkId",
-                                "path": "linkId",
-                                "type": "string"
+                                name: "linkId",
+                                path: "linkId",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "forEachOrNull": "answer",
-                        "column": [
+                        forEachOrNull: "answer",
+                        column: [
                             {
-                                "name": "answerValue",
-                                "path": "value.ofType(string)",
-                                "type": "string"
+                                name: "answerValue",
+                                path: "value.ofType(string)",
+                                'type: "string"
                             }
                         ]
                     }
@@ -406,63 +406,63 @@ function testCombinedWithForeachornull() returns error? {
 
 @test:Config {}
 function testCombinedWithUnionall() returns error? {
-    json view = {
-        "resource": "QuestionnaireResponse",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "QuestionnaireResponse",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "unionAll": [
+                unionAll: [
                     {
-                        "repeat": [
+                        'repeat: [
                             "item"
                         ],
-                        "column": [
+                        column: [
                             {
-                                "name": "type",
-                                "path": "'item'",
-                                "type": "string"
+                                name: "type",
+                                path: "'item'",
+                                'type: "string"
                             },
                             {
-                                "name": "linkId",
-                                "path": "linkId",
-                                "type": "string"
+                                name: "linkId",
+                                path: "linkId",
+                                'type: "string"
                             },
                             {
-                                "name": "text",
-                                "path": "text",
-                                "type": "string"
+                                name: "text",
+                                path: "text",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "repeat": [
+                        'repeat: [
                             "item",
                             "answer.item"
                         ],
-                        "column": [
+                        column: [
                             {
-                                "name": "type",
-                                "path": "'answer-item'",
-                                "type": "string"
+                                name: "type",
+                                path: "'answer-item'",
+                                'type: "string"
                             },
                             {
-                                "name": "linkId",
-                                "path": "linkId",
-                                "type": "string"
+                                name: "linkId",
+                                path: "linkId",
+                                'type: "string"
                             },
                             {
-                                "name": "text",
-                                "path": "text",
-                                "type": "string"
+                                name: "text",
+                                path: "text",
+                                'type: "string"
                             }
                         ]
                     }

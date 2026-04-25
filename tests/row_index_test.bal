@@ -92,21 +92,21 @@ json[] rowIndexResources = [
 
 @test:Config {}
 function testRowindexAtTopLevel() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     },
                     {
-                        "name": "row_index",
-                        "path": "%rowIndex",
-                        "type": "integer"
+                        name: "row_index",
+                        path: "%rowIndex",
+                        'type: "integer"
                     }
                 ]
             }
@@ -131,31 +131,31 @@ function testRowindexAtTopLevel() returns error? {
 
 @test:Config {}
 function testRowindexWithForeach() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "forEach": "name",
-                "column": [
+                forEach: "name",
+                column: [
                     {
-                        "name": "name_index",
-                        "path": "%rowIndex",
-                        "type": "integer"
+                        name: "name_index",
+                        path: "%rowIndex",
+                        'type: "integer"
                     },
                     {
-                        "name": "family",
-                        "path": "family",
-                        "type": "string"
+                        name: "family",
+                        path: "family",
+                        'type: "string"
                     }
                 ]
             }
@@ -183,31 +183,31 @@ function testRowindexWithForeach() returns error? {
 
 @test:Config {}
 function testRowindexWithForeachornull() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "forEachOrNull": "name",
-                "column": [
+                forEachOrNull: "name",
+                column: [
                     {
-                        "name": "name_index",
-                        "path": "%rowIndex",
-                        "type": "integer"
+                        name: "name_index",
+                        path: "%rowIndex",
+                        'type: "integer"
                     },
                     {
-                        "name": "family",
-                        "path": "family",
-                        "type": "string"
+                        name: "family",
+                        path: "family",
+                        'type: "string"
                     }
                 ]
             }
@@ -240,46 +240,46 @@ function testRowindexWithForeachornull() returns error? {
 
 @test:Config {}
 function testRowindexWithNestedForeach() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "forEach": "contact",
-                "column": [
+                forEach: "contact",
+                column: [
                     {
-                        "name": "contact_index",
-                        "path": "%rowIndex",
-                        "type": "integer"
+                        name: "contact_index",
+                        path: "%rowIndex",
+                        'type: "integer"
                     },
                     {
-                        "name": "contact_family",
-                        "path": "name.family",
-                        "type": "string"
+                        name: "contact_family",
+                        path: "name.family",
+                        'type: "string"
                     }
                 ],
-                "select": [
+                'select: [
                     {
-                        "forEach": "telecom",
-                        "column": [
+                        forEach: "telecom",
+                        column: [
                             {
-                                "name": "telecom_index",
-                                "path": "%rowIndex",
-                                "type": "integer"
+                                name: "telecom_index",
+                                path: "%rowIndex",
+                                'type: "integer"
                             },
                             {
-                                "name": "system",
-                                "path": "system",
-                                "type": "code"
+                                name: "system",
+                                path: "system",
+                                'type: "code"
                             }
                         ]
                     }
@@ -315,33 +315,33 @@ function testRowindexWithNestedForeach() returns error? {
 
 @test:Config {}
 function testRowindexWithRepeat() returns error? {
-    json view = {
-        "resource": "QuestionnaireResponse",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "QuestionnaireResponse",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "repeat": [
+                'repeat: [
                     "item"
                 ],
-                "column": [
+                column: [
                     {
-                        "name": "item_index",
-                        "path": "%rowIndex",
-                        "type": "integer"
+                        name: "item_index",
+                        path: "%rowIndex",
+                        'type: "integer"
                     },
                     {
-                        "name": "linkId",
-                        "path": "linkId",
-                        "type": "string"
+                        name: "linkId",
+                        path: "linkId",
+                        'type: "string"
                     }
                 ]
             }
@@ -374,58 +374,58 @@ function testRowindexWithRepeat() returns error? {
 
 @test:Config {}
 function testRowindexWithUnionall() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "unionAll": [
+                unionAll: [
                     {
-                        "forEach": "name",
-                        "column": [
+                        forEach: "name",
+                        column: [
                             {
-                                "name": "index",
-                                "path": "%rowIndex",
-                                "type": "integer"
+                                name: "index",
+                                path: "%rowIndex",
+                                'type: "integer"
                             },
                             {
-                                "name": "value",
-                                "path": "family",
-                                "type": "string"
+                                name: "value",
+                                path: "family",
+                                'type: "string"
                             },
                             {
-                                "name": "source",
-                                "path": "'name'",
-                                "type": "string"
+                                name: "source",
+                                path: "'name'",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "forEach": "contact",
-                        "column": [
+                        forEach: "contact",
+                        column: [
                             {
-                                "name": "index",
-                                "path": "%rowIndex",
-                                "type": "integer"
+                                name: "index",
+                                path: "%rowIndex",
+                                'type: "integer"
                             },
                             {
-                                "name": "value",
-                                "path": "name.family",
-                                "type": "string"
+                                name: "value",
+                                path: "name.family",
+                                'type: "string"
                             },
                             {
-                                "name": "source",
-                                "path": "'contact'",
-                                "type": "string"
+                                name: "source",
+                                path: "'contact'",
+                                'type: "string"
                             }
                         ]
                     }
@@ -470,47 +470,47 @@ function testRowindexWithUnionall() returns error? {
 
 @test:Config {}
 function testRowindexInUnionallWithoutForeach() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "unionAll": [
+                unionAll: [
                     {
-                        "column": [
+                        column: [
                             {
-                                "name": "id",
-                                "path": "id",
-                                "type": "id"
+                                name: "id",
+                                path: "id",
+                                'type: "id"
                             },
                             {
-                                "name": "row_index",
-                                "path": "%rowIndex",
-                                "type": "integer"
+                                name: "row_index",
+                                path: "%rowIndex",
+                                'type: "integer"
                             },
                             {
-                                "name": "source",
-                                "path": "'a'",
-                                "type": "string"
+                                name: "source",
+                                path: "'a'",
+                                'type: "string"
                             }
                         ]
                     },
                     {
-                        "column": [
+                        column: [
                             {
-                                "name": "id",
-                                "path": "id",
-                                "type": "id"
+                                name: "id",
+                                path: "id",
+                                'type: "id"
                             },
                             {
-                                "name": "row_index",
-                                "path": "%rowIndex",
-                                "type": "integer"
+                                name: "row_index",
+                                path: "%rowIndex",
+                                'type: "integer"
                             },
                             {
-                                "name": "source",
-                                "path": "'b'",
-                                "type": "string"
+                                name: "source",
+                                path: "'b'",
+                                'type: "string"
                             }
                         ]
                     }
@@ -555,57 +555,57 @@ function testRowindexInUnionallWithoutForeach() returns error? {
 
 @test:Config {}
 function testRowindexInUnionallInsideForeach() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "forEach": "contact",
-                "column": [
+                forEach: "contact",
+                column: [
                     {
-                        "name": "contact_index",
-                        "path": "%rowIndex",
-                        "type": "integer"
+                        name: "contact_index",
+                        path: "%rowIndex",
+                        'type: "integer"
                     }
                 ],
-                "select": [
+                'select: [
                     {
-                        "unionAll": [
+                        unionAll: [
                             {
-                                "forEach": "telecom",
-                                "column": [
+                                forEach: "telecom",
+                                column: [
                                     {
-                                        "name": "telecom_index",
-                                        "path": "%rowIndex",
-                                        "type": "integer"
+                                        name: "telecom_index",
+                                        path: "%rowIndex",
+                                        'type: "integer"
                                     },
                                     {
-                                        "name": "value",
-                                        "path": "value",
-                                        "type": "string"
+                                        name: "value",
+                                        path: "value",
+                                        'type: "string"
                                     }
                                 ]
                             },
                             {
-                                "column": [
+                                column: [
                                     {
-                                        "name": "telecom_index",
-                                        "path": "%rowIndex",
-                                        "type": "integer"
+                                        name: "telecom_index",
+                                        path: "%rowIndex",
+                                        'type: "integer"
                                     },
                                     {
-                                        "name": "value",
-                                        "path": "name.family",
-                                        "type": "string"
+                                        name: "value",
+                                        path: "name.family",
+                                        'type: "string"
                                     }
                                 ]
                             }
@@ -652,31 +652,31 @@ function testRowindexInUnionallInsideForeach() returns error? {
 
 @test:Config {}
 function testRowindexForSurrogateKey() returns error? {
-    json view = {
-        "resource": "Patient",
-        "status": "active",
-        "select": [
+    ViewDefinition view = {
+        'resource: "Patient",
+        status: "active",
+        'select: [
             {
-                "column": [
+                column: [
                     {
-                        "name": "id",
-                        "path": "id",
-                        "type": "id"
+                        name: "id",
+                        path: "id",
+                        'type: "id"
                     }
                 ]
             },
             {
-                "forEach": "name",
-                "column": [
+                forEach: "name",
+                column: [
                     {
-                        "name": "name_index",
-                        "path": "%rowIndex",
-                        "type": "integer"
+                        name: "name_index",
+                        path: "%rowIndex",
+                        'type: "integer"
                     },
                     {
-                        "name": "family",
-                        "path": "family",
-                        "type": "string"
+                        name: "family",
+                        path: "family",
+                        'type: "string"
                     }
                 ]
             }
