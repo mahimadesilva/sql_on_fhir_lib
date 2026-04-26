@@ -41,6 +41,7 @@ function testGetreferencekeyResultMatchesGetresourcekeyWithoutTypeSpecifier() re
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -76,7 +77,7 @@ function testGetreferencekeyResultMatchesGetresourcekeyWithoutTypeSpecifier() re
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -91,6 +92,7 @@ function testGetreferencekeyResultMatchesGetresourcekeyWithRightTypeSpecifier() 
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -126,7 +128,7 @@ function testGetreferencekeyResultMatchesGetresourcekeyWithRightTypeSpecifier() 
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -141,6 +143,7 @@ function testGetreferencekeyResultMatchesGetresourcekeyWithWrongTypeSpecifier() 
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -176,6 +179,6 @@ function testGetreferencekeyResultMatchesGetresourcekeyWithWrongTypeSpecifier() 
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }

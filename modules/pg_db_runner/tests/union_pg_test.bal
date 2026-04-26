@@ -222,7 +222,7 @@ function testBasic2() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -354,7 +354,7 @@ function testUnionallColumn() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -481,7 +481,7 @@ function testDuplicates() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -547,7 +547,7 @@ function testEmptyResults() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -646,7 +646,7 @@ function testEmptyWithForeachornull() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -729,7 +729,7 @@ function testForeachornullAndForeach() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -834,7 +834,7 @@ function testNested() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -943,7 +943,7 @@ function testOneEmptyOperand() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 

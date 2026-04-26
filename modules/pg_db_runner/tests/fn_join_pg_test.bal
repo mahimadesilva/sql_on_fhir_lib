@@ -32,6 +32,7 @@ function testJoinWithComma() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -70,7 +71,7 @@ function testJoinWithComma() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -85,6 +86,7 @@ function testJoinWithEmptyValue() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -123,7 +125,7 @@ function testJoinWithEmptyValue() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -138,6 +140,7 @@ function testJoinWithNoValueDefaultToNoSeparator() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -176,6 +179,6 @@ function testJoinWithNoValueDefaultToNoSeparator() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }

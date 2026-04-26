@@ -180,7 +180,7 @@ function testCollectionTrue() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -274,7 +274,7 @@ function testCollectionFalseRelativeToForeachParent() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -368,6 +368,6 @@ function testCollectionFalseRelativeToForeachornullParent() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }

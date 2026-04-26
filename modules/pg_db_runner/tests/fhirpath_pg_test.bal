@@ -103,7 +103,7 @@ function testOneElement() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -157,7 +157,7 @@ function testTwoElementsFirst() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -218,7 +218,7 @@ function testCollection() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -272,7 +272,7 @@ function testIndex0() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -326,7 +326,7 @@ function testIndex1() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -380,7 +380,7 @@ function testOutOfIndex() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -434,7 +434,7 @@ function testWhere() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -496,7 +496,7 @@ function testExists() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -558,7 +558,7 @@ function testNestedExists() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -620,7 +620,7 @@ function testStringJoin() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -682,6 +682,6 @@ function testStringJoinDefaultSeparator() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }

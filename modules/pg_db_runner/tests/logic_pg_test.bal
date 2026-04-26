@@ -42,6 +42,7 @@ function testFilteringWithAnd() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "where": [
             {
                 "path": "gender = 'male' and deceased.ofType(boolean) = false"
@@ -79,7 +80,7 @@ function testFilteringWithAnd() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -94,6 +95,7 @@ function testFilteringWithOr() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "where": [
             {
                 "path": "gender = 'male' or deceased.ofType(boolean) = false"
@@ -137,7 +139,7 @@ function testFilteringWithOr() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -152,6 +154,7 @@ function testFilteringWithNot() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "where": [
             {
                 "path": "(gender = 'male').not()"
@@ -192,6 +195,6 @@ function testFilteringWithNot() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }

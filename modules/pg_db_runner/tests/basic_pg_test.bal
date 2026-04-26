@@ -81,7 +81,7 @@ function testBasicAttribute() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -142,7 +142,7 @@ function testBooleanAttributeWithFalse() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -203,7 +203,7 @@ function testTwoColumns() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -268,7 +268,7 @@ function testTwoSelectsWithColumns() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -320,7 +320,7 @@ function testWhere1() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -372,7 +372,7 @@ function testWhere2() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -424,7 +424,7 @@ function testWhereReturnsNonBooleanForSomeCases() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -476,7 +476,7 @@ function testWhereAsExpr1() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -528,7 +528,7 @@ function testWhereAsExpr2() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -543,6 +543,7 @@ function testSelectColumn() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -594,7 +595,7 @@ function testSelectColumn() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -609,6 +610,7 @@ function testColumnOrdering() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -743,33 +745,6 @@ function testColumnOrdering() returns error? {
         result.push(row.toJson());
     };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    // Row order is implementation-defined under UNION ALL branch interleaving;
-    // assert multiset equality (values and cardinality) instead of positional equality.
-    test:assertEquals(result.length(), expected.length(), msg = "Row count mismatch");
-    json[] remaining = result.clone();
-    foreach json expectedRow in expected {
-        int? idx = remaining.indexOf(expectedRow);
-        if idx is () {
-            test:assertFail(string `Expected row not found in result: ${expectedRow.toJsonString()}`);
-        }
-        _ = remaining.remove(<int>idx);
-    }
-    // Verify expected columns exist in first row
-    if result.length() > 0 {
-        string[] expectedCols = [
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-            "h"
-        ];
-        map<json> rowMap = <map<json>>result[0];
-        foreach string col in expectedCols {
-            test:assertTrue(rowMap.hasKey(col), msg = "Missing column: " + col);
-        }
-    }
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }

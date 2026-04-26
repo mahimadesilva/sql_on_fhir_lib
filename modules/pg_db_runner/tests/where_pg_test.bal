@@ -62,6 +62,7 @@ function testSimpleWherePathWithResult() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -99,7 +100,7 @@ function testSimpleWherePathWithResult() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -114,6 +115,7 @@ function testWherePathWithNoResults() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -147,7 +149,7 @@ function testWherePathWithNoResults() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -162,6 +164,7 @@ function testWherePathWithGreaterThanInequality() returns error? {
     }
     json viewJson = {
         "resource": "Observation",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -199,7 +202,7 @@ function testWherePathWithGreaterThanInequality() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -214,6 +217,7 @@ function testWherePathWithLessThanInequality() returns error? {
     }
     json viewJson = {
         "resource": "Observation",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -251,7 +255,7 @@ function testWherePathWithLessThanInequality() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -266,6 +270,7 @@ function testMultipleWherePaths() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -306,7 +311,7 @@ function testMultipleWherePaths() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -321,6 +326,7 @@ function testWherePathWithAnAndConnector() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -358,7 +364,7 @@ function testWherePathWithAnAndConnector() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -373,6 +379,7 @@ function testWherePathWithAnOrConnector() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -413,7 +420,7 @@ function testWherePathWithAnOrConnector() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -428,6 +435,7 @@ function testWherePathThatEvaluatesToTrueWhenEmpty() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -468,6 +476,6 @@ function testWherePathThatEvaluatesToTrueWhenEmpty() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }

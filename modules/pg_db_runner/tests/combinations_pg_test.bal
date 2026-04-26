@@ -31,6 +31,7 @@ function testSelect() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "select": [
@@ -73,7 +74,7 @@ function testSelect() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -88,6 +89,7 @@ function testColumnSelect() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -140,7 +142,7 @@ function testColumnSelect() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -155,6 +157,7 @@ function testSiblingSelect() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -205,7 +208,7 @@ function testSiblingSelect() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -220,6 +223,7 @@ function testSiblingSelectInsideASelect() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "select": [
@@ -274,7 +278,7 @@ function testSiblingSelectInsideASelect() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -289,6 +293,7 @@ function testColumnSelectWithWhere() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "column": [
@@ -338,7 +343,7 @@ function testColumnSelectWithWhere() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
 
@@ -353,6 +358,7 @@ function testUnionallForeachColumnSelect() returns error? {
     }
     json viewJson = {
         "resource": "Patient",
+        "status": "active",
         "select": [
             {
                 "select": [
@@ -395,6 +401,6 @@ function testUnionallForeachColumnSelect() returns error? {
             result.push(row.toJson());
         };
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-    test:assertEquals(result, expected);
+    assertResultsMatch(result, expected);
     check dbClient.close();
 }
