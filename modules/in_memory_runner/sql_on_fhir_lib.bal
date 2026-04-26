@@ -77,6 +77,25 @@ public isolated function defaultGetReferenceKey(json[] nodes, string? resourceTy
 // Store for extension functions (module-level to be accessible across functions)
 isolated FhirPathExtensions currentExtensions = {};
 
+isolated function processConstants(sql_on_fhir_lib:ViewDefinitionConstant[]? constants) returns map<json>|error {
+    map<json> result = {};
+    foreach sql_on_fhir_lib:ViewDefinitionConstant c in (constants ?: []) {
+        map<json> cJson = <map<json>>c.toJson();
+        boolean found = false;
+        foreach string key in cJson.keys() {
+            if key.startsWith("value") {
+                result[c.name] = cJson[key];
+                found = true;
+                break;
+            }
+        }
+        if !found {
+            return error("Constant '" + c.name + "' has no value");
+        }
+    }
+    return result;
+}
+
 // Helper to check if path contains getResourceKey() call
 isolated function containsGetResourceKey(string path) returns boolean {
     return path.includes(".getResourceKey()") || path.startsWith("getResourceKey()");
@@ -136,11 +155,13 @@ isolated function extractReferenceKeyParam(string path) returns string? {
 # + path - The FHIRPath expression
 # + extensions - Optional custom extension functions
 # + return - Array of values from the FHIRPath evaluation
-isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
+    map<json>? vars = constants.length() > 0 ? constants : ();
+
     // Check for getResourceKey() function call
     if containsGetResourceKey(path) {
         string basePath = extractBasePath(path, ".getResourceKey()");
-        json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath) : [node];
+        json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath, variables = vars) : [node];
         GetResourceKeyFunction getResourceKeyFn = extensions?.getResourceKey ?: defaultGetResourceKey;
         return getResourceKeyFn(nodes);
     }
@@ -148,14 +169,14 @@ isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? e
     // Check for getReferenceKey() function call with optional parameter
     if containsGetReferenceKey(path) {
         string basePath = extractBasePath(path, ".getReferenceKey(");
-        json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath) : [node];
+        json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath, variables = vars) : [node];
         string? resourceTypeParam = extractReferenceKeyParam(path);
         GetReferenceKeyFunction getReferenceKeyFn = extensions?.getReferenceKey ?: defaultGetReferenceKey;
         return getReferenceKeyFn(nodes, resourceTypeParam);
     }
 
     // Standard FHIRPath evaluation
-    return fhirpath:getValuesFromFhirPath(node, path);
+    return fhirpath:getValuesFromFhirPath(node, path, variables = vars);
 }
 
 // Validates column definitions for duplicates and unionAll branch consistency
@@ -290,25 +311,25 @@ isolated function getOperationType(sql_on_fhir_lib:ViewDefinitionSelect sel) ret
     return "select";
 }
 
-isolated function doEvalTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function doEvalTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
     match getOperationType(sel) {
         "column" => {
-            return columnOperationTyped(sel, node, extensions);
+            return columnOperationTyped(sel, node, extensions, constants);
         }
         "select" => {
-            return selectOperationTyped(sel, node, extensions);
+            return selectOperationTyped(sel, node, extensions, constants);
         }
         "forEach" => {
-            return forEachOperationTyped(sel, node, extensions);
+            return forEachOperationTyped(sel, node, extensions, constants);
         }
         "forEachOrNull" => {
-            return forEachOrNullOperationTyped(sel, node, extensions);
+            return forEachOrNullOperationTyped(sel, node, extensions, constants);
         }
         "unionAll" => {
-            return unionAllOperationTyped(sel, node, extensions);
+            return unionAllOperationTyped(sel, node, extensions, constants);
         }
         "repeat" => {
-            return repeatOperationTyped(sel, node, extensions);
+            return repeatOperationTyped(sel, node, extensions, constants);
         }
         _ => {
             return [];
@@ -316,10 +337,10 @@ isolated function doEvalTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json nod
     }
 }
 
-isolated function columnOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function columnOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
     map<anydata> result = {};
     foreach sql_on_fhir_lib:ViewDefinitionSelectColumn c in (sel.column ?: []) {
-        json[] vs = check evaluateFhirPath(node, c.path, extensions);
+        json[] vs = check evaluateFhirPath(node, c.path, extensions, constants);
         if c.collection ?: false {
             result[c.name] = vs;
         } else if vs.length() === 1 {
@@ -335,41 +356,41 @@ isolated function columnOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel,
 
 // Evaluates column, unionAll, then select children of a node against the given FHIR node,
 // combining results via rowProduct. Used by select, forEach, forEachOrNull, and repeat operations.
-isolated function evalSelectChildren(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function evalSelectChildren(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
     json[][] parts = [];
     if sel.column != () {
-        parts.push(check columnOperationTyped(sel, node, extensions));
+        parts.push(check columnOperationTyped(sel, node, extensions, constants));
     }
     if sel.unionAll != () {
-        parts.push(check unionAllOperationTyped(sel, node, extensions));
+        parts.push(check unionAllOperationTyped(sel, node, extensions, constants));
     }
     foreach sql_on_fhir_lib:ViewDefinitionSelect childSel in (sel.'select ?: []) {
-        parts.push(check doEvalTyped(childSel, node, extensions));
+        parts.push(check doEvalTyped(childSel, node, extensions, constants));
     }
     return rowProduct(parts);
 }
 
-isolated function selectOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    return evalSelectChildren(sel, node, extensions);
+isolated function selectOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
+    return evalSelectChildren(sel, node, extensions, constants);
 }
 
-isolated function forEachOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    json[] nodes = check evaluateFhirPath(node, sel.forEach ?: "", extensions);
+isolated function forEachOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
+    json[] nodes = check evaluateFhirPath(node, sel.forEach ?: "", extensions, constants);
     json[] results = [];
     foreach json nodeItem in nodes {
-        results.push(...check evalSelectChildren(sel, nodeItem, extensions));
+        results.push(...check evalSelectChildren(sel, nodeItem, extensions, constants));
     }
     return results;
 }
 
-isolated function forEachOrNullOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    json[] nodes = check evaluateFhirPath(node, sel.forEachOrNull ?: "", extensions);
+isolated function forEachOrNullOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
+    json[] nodes = check evaluateFhirPath(node, sel.forEachOrNull ?: "", extensions, constants);
     if nodes.length() == 0 {
         nodes = [{}];
     }
     json[] results = [];
     foreach json nodeItem in nodes {
-        results.push(...check evalSelectChildren(sel, nodeItem, extensions));
+        results.push(...check evalSelectChildren(sel, nodeItem, extensions, constants));
     }
     return results;
 }
@@ -386,10 +407,10 @@ isolated function arraysUnique(json[] results) returns int {
     return uniqueColumnSets.length();
 }
 
-isolated function unionAllOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function unionAllOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
     json[] result = [];
     foreach sql_on_fhir_lib:ViewDefinitionSelect branch in (sel.unionAll ?: []) {
-        result.push(...check doEvalTyped(branch, node, extensions));
+        result.push(...check doEvalTyped(branch, node, extensions, constants));
     }
     int uniqueCount = arraysUnique(result);
     if uniqueCount > 1 {
@@ -399,7 +420,7 @@ isolated function unionAllOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect se
 }
 
 // Helper function to recursively traverse FHIR nodes
-isolated function traverse(json currentNode, string[] paths, json[] result, boolean isRoot, FhirPathExtensions? extensions = ()) returns error? {
+isolated function traverse(json currentNode, string[] paths, json[] result, boolean isRoot, FhirPathExtensions? extensions = (), map<json> constants = {}) returns error? {
     // Don't add the root node to results, only its children
     if !isRoot {
         result.push(currentNode);
@@ -407,28 +428,28 @@ isolated function traverse(json currentNode, string[] paths, json[] result, bool
 
     // Recursively traverse using each path expression
     foreach string path in paths {
-        json[] childNodes = check evaluateFhirPath(currentNode, path, extensions);
+        json[] childNodes = check evaluateFhirPath(currentNode, path, extensions, constants);
         foreach json childNode in childNodes {
             // Only traverse if it's not an array
             if childNode !is json[] {
-                check traverse(childNode, paths, result, false, extensions);
+                check traverse(childNode, paths, result, false, extensions, constants);
             }
         }
     }
 }
 
 // Recursively traverse a FHIR node using path expressions
-isolated function recursiveTraverse(string[] paths, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function recursiveTraverse(string[] paths, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
     json[] result = [];
-    check traverse(node, paths, result, true, extensions);
+    check traverse(node, paths, result, true, extensions, constants);
     return result;
 }
 
-isolated function repeatOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
-    json[] nodes = check recursiveTraverse(sel.repeat ?: [], node, extensions);
+isolated function repeatOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
+    json[] nodes = check recursiveTraverse(sel.repeat ?: [], node, extensions, constants);
     json[] results = [];
     foreach json nodeItem in nodes {
-        results.push(...check evalSelectChildren(sel, nodeItem, extensions));
+        results.push(...check evalSelectChildren(sel, nodeItem, extensions, constants));
     }
     return results;
 }
@@ -440,6 +461,7 @@ isolated function repeatOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel,
 # + return - Array of result rows or error
 public isolated function evaluate(json[] resources, sql_on_fhir_lib:ViewDefinition viewDefinition, FhirPathExtensions? extensions = ()) returns json[]|error {
     _ = check validateColumnsTyped(viewDefinition.'select, []);
+    map<json> constants = check processConstants(viewDefinition.constant);
 
     json[] results = [];
     foreach json 'resource in resources {
@@ -455,7 +477,7 @@ public isolated function evaluate(json[] resources, sql_on_fhir_lib:ViewDefiniti
         // Apply top-level where filters
         boolean include = true;
         foreach sql_on_fhir_lib:ViewDefinitionWhere w in (viewDefinition.'where ?: []) {
-            json[] vals = check evaluateFhirPath('resource, w.path, extensions);
+            json[] vals = check evaluateFhirPath('resource, w.path, extensions, constants);
             json val = vals.length() > 0 ? vals[0] : ();
             if val !== () && val !is boolean {
                 return error("'where' expression path should return 'boolean'");
@@ -472,7 +494,7 @@ public isolated function evaluate(json[] resources, sql_on_fhir_lib:ViewDefiniti
         // Evaluate each top-level select and combine via row product
         json[][] parts = [];
         foreach sql_on_fhir_lib:ViewDefinitionSelect sel in viewDefinition.'select {
-            parts.push(check doEvalTyped(sel, 'resource, extensions));
+            parts.push(check doEvalTyped(sel, 'resource, extensions, constants));
         }
         results.push(...check rowProduct(parts));
     }
