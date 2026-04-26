@@ -91,7 +91,7 @@ function testAddObservation() returns error? {
             "add": 5,
             "sub": 1,
             "mul": 6,
-            "div": 1.5,
+            "div": 1.5d,
             "eq": false,
             "gt": true,
             "ge": true,

@@ -150,33 +150,62 @@ isolated function extractReferenceKeyParam(string path) returns string? {
     return paramStr;
 }
 
+# Rewrites `.ofType(X)` → `X` (first letter uppercased) in a FHIRPath expression.
+# e.g. `value.ofType(Range)` → `valueRange`, matching FHIR JSON's choice-type naming convention.
+# + path - The FHIRPath expression to rewrite
+# + return - Rewritten path with ofType calls replaced by capitalized type suffixes
+isolated function rewriteOfType(string path) returns string {
+    string result = path;
+    int startIndex = 0;
+    while true {
+        int? ofTypeIdx = result.indexOf(".ofType(", startIndex);
+        if ofTypeIdx is () {
+            break;
+        }
+        int? closeParenIdx = result.indexOf(")", ofTypeIdx);
+        if closeParenIdx is () {
+            break;
+        }
+        string typeName = result.substring(ofTypeIdx + 8, closeParenIdx);
+        if typeName.length() == 0 {
+            startIndex = ofTypeIdx + 1;
+            continue;
+        }
+        string capitalized = typeName.substring(0, 1).toUpperAscii() + typeName.substring(1);
+        result = result.substring(0, ofTypeIdx) + capitalized + result.substring(closeParenIdx + 1);
+        startIndex = ofTypeIdx + capitalized.length();
+    }
+    return result;
+}
+
 # Evaluates a FHIRPath expression with support for custom extension functions
 # + node - The FHIR resource node to evaluate against
 # + path - The FHIRPath expression
 # + extensions - Optional custom extension functions
 # + return - Array of values from the FHIRPath evaluation
 isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
+    string rewrittenPath = rewriteOfType(path);
     map<json>? vars = constants.length() > 0 ? constants : ();
 
     // Check for getResourceKey() function call
-    if containsGetResourceKey(path) {
-        string basePath = extractBasePath(path, ".getResourceKey()");
+    if containsGetResourceKey(rewrittenPath) {
+        string basePath = extractBasePath(rewrittenPath, ".getResourceKey()");
         json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath, variables = vars) : [node];
         GetResourceKeyFunction getResourceKeyFn = extensions?.getResourceKey ?: defaultGetResourceKey;
         return getResourceKeyFn(nodes);
     }
 
     // Check for getReferenceKey() function call with optional parameter
-    if containsGetReferenceKey(path) {
-        string basePath = extractBasePath(path, ".getReferenceKey(");
+    if containsGetReferenceKey(rewrittenPath) {
+        string basePath = extractBasePath(rewrittenPath, ".getReferenceKey(");
         json[] nodes = basePath.length() > 0 ? check fhirpath:getValuesFromFhirPath(node, basePath, variables = vars) : [node];
-        string? resourceTypeParam = extractReferenceKeyParam(path);
+        string? resourceTypeParam = extractReferenceKeyParam(rewrittenPath);
         GetReferenceKeyFunction getReferenceKeyFn = extensions?.getReferenceKey ?: defaultGetReferenceKey;
         return getReferenceKeyFn(nodes, resourceTypeParam);
     }
 
     // Standard FHIRPath evaluation
-    return fhirpath:getValuesFromFhirPath(node, path, variables = vars);
+    return fhirpath:getValuesFromFhirPath(node, rewrittenPath, variables = vars);
 }
 
 // Validates column definitions for duplicates and unionAll branch consistency
