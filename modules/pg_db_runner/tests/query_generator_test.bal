@@ -1,4 +1,5 @@
 import ballerina/test;
+import mahima_de_silva/sql_on_fhir_lib;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -20,7 +21,7 @@ isolated function perResourceCtx(string resourceType) returns TranspilerContext 
 # Minimal combination with no union choice (single select, unionChoice = -1).
 # + sel - The single select element to wrap
 # + return - `SelectCombination` with `selects = [sel]` and `unionChoices = [-1]`
-isolated function simpleCombination(ViewDefinitionSelect sel) returns SelectCombination {
+isolated function simpleCombination(sql_on_fhir_lib:ViewDefinitionSelect sel) returns SelectCombination {
     return {selects: [sel], unionChoices: [-1]};
 }
 
@@ -30,13 +31,13 @@ isolated function simpleCombination(ViewDefinitionSelect sel) returns SelectComb
 
 @test:Config {}
 function testSimpleSingleColumn() returns error? {
-    ViewDefinitionSelect sel = {
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {
         column: [{name: "id", path: "id"}]
     };
-    ViewDefinition viewDef = {
+    sql_on_fhir_lib:ViewDefinition viewDef = {
         'resource: "Patient",
         'select: [sel],
-        status: CODE_VIEWDEFINITION_STATUS_ACTIVE
+        status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE
     };
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, defaultCtx());
@@ -50,16 +51,16 @@ function testSimpleSingleColumn() returns error? {
 
 @test:Config {}
 function testSimpleMultipleColumns() returns error? {
-    ViewDefinitionSelect sel = {
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {
         column: [
             {name: "id", path: "id"},
             {name: "birthDate", path: "birthDate"}
         ]
     };
-    ViewDefinition viewDef = {
+    sql_on_fhir_lib:ViewDefinition viewDef = {
         'resource: "Patient",
         'select: [sel],
-        status: CODE_VIEWDEFINITION_STATUS_ACTIVE
+        status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE
     };
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, defaultCtx());
@@ -76,17 +77,17 @@ function testSimpleMultipleColumns() returns error? {
 @test:Config {}
 function testSimpleNestedSelect() returns error? {
     // Columns in a nested select should be included in the SELECT list.
-    ViewDefinitionSelect inner = {
+    sql_on_fhir_lib:ViewDefinitionSelect inner = {
         column: [{name: "birthDate", path: "birthDate"}]
     };
-    ViewDefinitionSelect outerSel = {
+    sql_on_fhir_lib:ViewDefinitionSelect outerSel = {
         column: [{name: "id", path: "id"}],
         'select: [inner]
     };
-    ViewDefinition viewDef = {
+    sql_on_fhir_lib:ViewDefinition viewDef = {
         'resource: "Patient",
         'select: [outerSel],
-        status: CODE_VIEWDEFINITION_STATUS_ACTIVE
+        status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE
     };
 
     string result = check generateSimpleStatement(simpleCombination(outerSel), viewDef, defaultCtx());
@@ -103,14 +104,14 @@ function testSimpleNestedSelect() returns error? {
 @test:Config {}
 function testSimpleViewWhere() returns error? {
     // A view-level where condition should appear in the WHERE clause.
-    ViewDefinitionSelect sel = {
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {
         column: [{name: "id", path: "id"}]
     };
-    ViewDefinition viewDef = {
+    sql_on_fhir_lib:ViewDefinition viewDef = {
         'resource: "Patient",
         'select: [sel],
         'where: [{path: "id = 'test-id'"}],
-        status: CODE_VIEWDEFINITION_STATUS_ACTIVE
+        status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE
     };
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, defaultCtx());
@@ -123,8 +124,8 @@ function testSimpleViewWhere() returns error? {
 @test:Config {}
 function testSimpleNoColumns() returns error? {
     // A combination with no columns should fall back to SELECT *.
-    ViewDefinitionSelect sel = {};
-    ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: CODE_VIEWDEFINITION_STATUS_ACTIVE};
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {};
+    sql_on_fhir_lib:ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE};
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, defaultCtx());
 
@@ -137,10 +138,10 @@ function testSimpleNoColumns() returns error? {
 
 @test:Config {}
 function testTypecastInteger() returns error? {
-    ViewDefinitionSelect sel = {
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {
         column: [{name: "count", path: "someInt", 'type: "integer"}]
     };
-    ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: CODE_VIEWDEFINITION_STATUS_ACTIVE};
+    sql_on_fhir_lib:ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE};
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, defaultCtx());
 
@@ -149,10 +150,10 @@ function testTypecastInteger() returns error? {
 
 @test:Config {}
 function testTypecastBoolean() returns error? {
-    ViewDefinitionSelect sel = {
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {
         column: [{name: "active", path: "active", 'type: "boolean"}]
     };
-    ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: CODE_VIEWDEFINITION_STATUS_ACTIVE};
+    sql_on_fhir_lib:ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE};
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, defaultCtx());
 
@@ -162,10 +163,10 @@ function testTypecastBoolean() returns error? {
 @test:Config {}
 function testTypecastString() returns error? {
     // FHIR "string" maps to PostgreSQL TEXT — no cast should be applied.
-    ViewDefinitionSelect sel = {
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {
         column: [{name: "gender", path: "gender", 'type: "string"}]
     };
-    ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: CODE_VIEWDEFINITION_STATUS_ACTIVE};
+    sql_on_fhir_lib:ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE};
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, defaultCtx());
 
@@ -227,10 +228,10 @@ function testSingleCombinationNoUnionAll() returns error? {
 
 @test:Config {}
 function testCustomResourceColumn() returns error? {
-    ViewDefinitionSelect sel = {
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {
         column: [{name: "id", path: "id"}]
     };
-    ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: CODE_VIEWDEFINITION_STATUS_ACTIVE};
+    sql_on_fhir_lib:ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE};
     TranspilerContext ctx = {resourceAlias: "r", resourceColumn: "RESOURCE_JSON", tableName: "fhir_resources"};
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, ctx);
@@ -241,10 +242,10 @@ function testCustomResourceColumn() returns error? {
 
 @test:Config {}
 function testCustomTableName() returns error? {
-    ViewDefinitionSelect sel = {
+    sql_on_fhir_lib:ViewDefinitionSelect sel = {
         column: [{name: "id", path: "id"}]
     };
-    ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: CODE_VIEWDEFINITION_STATUS_ACTIVE};
+    sql_on_fhir_lib:ViewDefinition viewDef = {'resource: "Patient", 'select: [sel], status: sql_on_fhir_lib:CODE_VIEWDEFINITION_STATUS_ACTIVE};
     TranspilerContext ctx = {resourceAlias: "r", resourceColumn: "resource", tableName: "PatientTable"};
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, ctx);

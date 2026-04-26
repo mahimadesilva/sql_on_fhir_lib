@@ -14,11 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import mahima_de_silva/sql_on_fhir_lib;
+
 // ========================================
 // SQL-ON-FHIR FOREACH STATEMENT GENERATOR
 // ========================================
 // Generates PostgreSQL SELECT statements with LATERAL JOIN unnesting
-// for ViewDefinition select elements that use forEach / forEachOrNull.
+// for sql_on_fhir_lib:ViewDefinition select elements that use forEach / forEachOrNull.
 //
 // PostgreSQL equivalent of the T-SQL ForEachProcessor (CROSS APPLY OPENJSON):
 //   forEach      -> CROSS JOIN LATERAL jsonb_array_elements(source->'path') AS alias(value)
@@ -35,7 +37,7 @@
 # + sel - The forEach select element (reference identity is the key)
 # + ctx - The transpiler context containing iterationContext, currentForEachAlias, etc.
 type ForEachEntry record {|
-    ViewDefinitionSelect sel;
+    sql_on_fhir_lib:ViewDefinitionSelect sel;
     TranspilerContext ctx;
 |};
 
@@ -51,20 +53,20 @@ type ForEachEntry record {|
 # within the forEach use `forEach_N.value` as their iteration context.
 #
 # + combination - The select combination to generate SQL for
-# + viewDef - The ViewDefinition
+# + viewDef - The sql_on_fhir_lib:ViewDefinition
 # + ctx - The transpiler context (base resource alias and column)
 # + return - The generated SQL string, or an error
 isolated function generateForEachStatement(
         SelectCombination combination,
-        ViewDefinition viewDef,
+        sql_on_fhir_lib:ViewDefinition viewDef,
         TranspilerContext ctx) returns string|error {
 
     string fromClause = generateFromClause(ctx.resourceAlias, ctx.tableName);
 
-    [ForEachEntry[], ViewDefinitionSelect[]] mapResult =
+    [ForEachEntry[], sql_on_fhir_lib:ViewDefinitionSelect[]] mapResult =
         buildForEachContextMap(combination.selects, ctx, combination);
     ForEachEntry[] contextMap = mapResult[0];
-    ViewDefinitionSelect[] topLevelForEach = mapResult[1];
+    sql_on_fhir_lib:ViewDefinitionSelect[] topLevelForEach = mapResult[1];
 
     string lateralClauses = buildLateralJoinClauses(contextMap, topLevelForEach, combination);
     string selectClause = check generateForEachSelectClause(combination, ctx, contextMap);
@@ -93,17 +95,17 @@ isolated function generateForEachStatement(
 # + combination - The select combination (used for union branch resolution)
 # + return - Tuple of [context map entries, top-level forEach selects]
 isolated function buildForEachContextMap(
-        ViewDefinitionSelect[] selects,
+        sql_on_fhir_lib:ViewDefinitionSelect[] selects,
         TranspilerContext baseCtx,
-        SelectCombination combination) returns [ForEachEntry[], ViewDefinitionSelect[]] {
+        SelectCombination combination) returns [ForEachEntry[], sql_on_fhir_lib:ViewDefinitionSelect[]] {
 
-    ViewDefinitionSelect[] topLevelForEach = collectTopLevelForEach(selects, combination);
+    sql_on_fhir_lib:ViewDefinitionSelect[] topLevelForEach = collectTopLevelForEach(selects, combination);
 
     ForEachEntry[] contextMap = [];
     int counter = 0;
     string baseSource = baseCtx.resourceAlias + "." + baseCtx.resourceColumn;
 
-    foreach ViewDefinitionSelect sel in topLevelForEach {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect sel in topLevelForEach {
         [ForEachEntry[], int] result = buildForEachEntries(sel, baseSource, baseCtx, counter);
         foreach ForEachEntry e in result[0] {
             contextMap.push(e);
@@ -126,19 +128,19 @@ isolated function buildForEachContextMap(
 # + combination - The select combination for union branch resolution
 # + return - Ordered list of top-level forEach select elements
 isolated function collectTopLevelForEach(
-        ViewDefinitionSelect[] selects,
-        SelectCombination combination) returns ViewDefinitionSelect[] {
+        sql_on_fhir_lib:ViewDefinitionSelect[] selects,
+        SelectCombination combination) returns sql_on_fhir_lib:ViewDefinitionSelect[] {
 
-    ViewDefinitionSelect[] result = [];
+    sql_on_fhir_lib:ViewDefinitionSelect[] result = [];
 
-    foreach ViewDefinitionSelect sel in selects {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect sel in selects {
         if sel.forEach is string || sel.forEachOrNull is string {
             result.push(sel);
         } else {
             // Collect forEach selects from this select's nested select array.
-            ViewDefinitionSelect[]? nested = sel.'select;
-            if nested is ViewDefinitionSelect[] {
-                foreach ViewDefinitionSelect ns in nested {
+            sql_on_fhir_lib:ViewDefinitionSelect[]? nested = sel.'select;
+            if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+                foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nested {
                     if ns.forEach is string || ns.forEachOrNull is string {
                         result.push(ns);
                     }
@@ -149,15 +151,15 @@ isolated function collectTopLevelForEach(
             int selIdx = indexOfSelect(combination, sel);
             if selIdx >= 0 {
                 int unionChoice = combination.unionChoices[selIdx];
-                ViewDefinitionSelect[]? unionAll = sel.unionAll;
-                if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-                    ViewDefinitionSelect branch = unionAll[unionChoice];
+                sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+                if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+                    sql_on_fhir_lib:ViewDefinitionSelect branch = unionAll[unionChoice];
                     if branch.forEach is string || branch.forEachOrNull is string {
                         result.push(branch);
                     } else {
-                        ViewDefinitionSelect[]? branchNested = branch.'select;
-                        if branchNested is ViewDefinitionSelect[] {
-                            foreach ViewDefinitionSelect ns in branchNested {
+                        sql_on_fhir_lib:ViewDefinitionSelect[]? branchNested = branch.'select;
+                        if branchNested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+                            foreach sql_on_fhir_lib:ViewDefinitionSelect ns in branchNested {
                                 if ns.forEach is string || ns.forEachOrNull is string {
                                     result.push(ns);
                                 }
@@ -184,7 +186,7 @@ isolated function collectTopLevelForEach(
 # + startCounter - The next alias counter value to use
 # + return - Tuple of [generated entries, next counter value after this subtree]
 isolated function buildForEachEntries(
-        ViewDefinitionSelect forEachSel,
+        sql_on_fhir_lib:ViewDefinitionSelect forEachSel,
         string sourceExpr,
         TranspilerContext baseCtx,
         int startCounter) returns [ForEachEntry[], int] {
@@ -210,9 +212,9 @@ isolated function buildForEachEntries(
     ForEachEntry[] entries = [{sel: forEachSel, ctx: forEachCtx}];
 
     // Recurse into nested forEach selects within this forEach's select array.
-    ViewDefinitionSelect[]? nestedSelects = forEachSel.'select;
-    if nestedSelects is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect ns in nestedSelects {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? nestedSelects = forEachSel.'select;
+    if nestedSelects is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nestedSelects {
             if ns.forEach is string || ns.forEachOrNull is string {
                 [ForEachEntry[], int] nested = buildForEachEntries(
                         ns, applyAlias + ".value", forEachCtx, counter);
@@ -225,9 +227,9 @@ isolated function buildForEachEntries(
     }
 
     // Recurse into nested forEach selects within unionAll options.
-    ViewDefinitionSelect[]? unionAll = forEachSel.unionAll;
-    if unionAll is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect uo in unionAll {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = forEachSel.unionAll;
+    if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect uo in unionAll {
             if uo.forEach is string || uo.forEachOrNull is string {
                 [ForEachEntry[], int] union = buildForEachEntries(
                         uo, applyAlias + ".value", forEachCtx, counter);
@@ -244,7 +246,7 @@ isolated function buildForEachEntries(
 
 # Look up the `TranspilerContext` for a forEach select by reference identity.
 #
-# Uses `===` (reference equality) because `ViewDefinitionSelect` is a record;
+# Uses `===` (reference equality) because `sql_on_fhir_lib:ViewDefinitionSelect` is a record;
 # value equality would give false positives for structurally identical selects.
 #
 # + contextMap - The forEach context map entries
@@ -252,7 +254,7 @@ isolated function buildForEachEntries(
 # + return - The associated context, or `()` if not found
 isolated function lookupForEachContext(
         ForEachEntry[] contextMap,
-        ViewDefinitionSelect sel) returns TranspilerContext? {
+        sql_on_fhir_lib:ViewDefinitionSelect sel) returns TranspilerContext? {
     foreach ForEachEntry entry in contextMap {
         if entry.sel === sel {
             return entry.ctx;
@@ -276,11 +278,11 @@ isolated function lookupForEachContext(
 # + return - Concatenated LATERAL JOIN strings (each prefixed with `\n`)
 isolated function buildLateralJoinClauses(
         ForEachEntry[] contextMap,
-        ViewDefinitionSelect[] topLevelForEach,
+        sql_on_fhir_lib:ViewDefinitionSelect[] topLevelForEach,
         SelectCombination combination) returns string {
 
     string clauses = "";
-    foreach ViewDefinitionSelect sel in topLevelForEach {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect sel in topLevelForEach {
         TranspilerContext? forEachCtx = lookupForEachContext(contextMap, sel);
         if forEachCtx is TranspilerContext {
             clauses += buildLateralJoinClause(sel, forEachCtx, contextMap, combination);
@@ -300,7 +302,7 @@ isolated function buildLateralJoinClauses(
 # + combination - The select combination
 # + return - The LATERAL JOIN string(s) for this forEach and its nested forEach selects
 isolated function buildLateralJoinClause(
-        ViewDefinitionSelect forEachSel,
+        sql_on_fhir_lib:ViewDefinitionSelect forEachSel,
         TranspilerContext forEachCtx,
         ForEachEntry[] contextMap,
         SelectCombination combination) returns string {
@@ -316,9 +318,9 @@ isolated function buildLateralJoinClause(
 
     // Append nested forEach join clauses.
     string nestedClauses = "";
-    ViewDefinitionSelect[]? nestedSelects = forEachSel.'select;
-    if nestedSelects is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect ns in nestedSelects {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? nestedSelects = forEachSel.'select;
+    if nestedSelects is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nestedSelects {
             if ns.forEach is string || ns.forEachOrNull is string {
                 TranspilerContext? nestedCtx = lookupForEachContext(contextMap, ns);
                 if nestedCtx is TranspilerContext {
@@ -403,7 +405,7 @@ isolated function generateForEachSelectClause(
     string[] columnParts = [];
 
     foreach int i in 0 ..< combination.selects.length() {
-        ViewDefinitionSelect sel = combination.selects[i];
+        sql_on_fhir_lib:ViewDefinitionSelect sel = combination.selects[i];
         int unionChoice = combination.unionChoices[i];
 
         string[] cols;
@@ -441,7 +443,7 @@ isolated function generateForEachSelectClause(
 # + contextMap - The forEach context map
 # + return - Column expression strings (`expr AS "name"`), or an error
 isolated function collectForEachSelectColumns(
-        ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
         int unionChoice,
         TranspilerContext forEachCtx,
         ForEachEntry[] contextMap) returns string[]|error {
@@ -449,25 +451,25 @@ isolated function collectForEachSelectColumns(
     string[] parts = [];
 
     // Direct columns use the forEach context.
-    ViewDefinitionSelectColumn[]? columns = sel.column;
-    if columns is ViewDefinitionSelectColumn[] {
-        foreach ViewDefinitionSelectColumn col in columns {
+    sql_on_fhir_lib:ViewDefinitionSelectColumn[]? columns = sel.column;
+    if columns is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in columns {
             string expr = check generateColumnExpression(col, forEachCtx);
             parts.push(expr + " AS \"" + col.name + "\"");
         }
     }
 
     // Nested select elements.
-    ViewDefinitionSelect[]? nested = sel.'select;
-    if nested is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect ns in nested {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? nested = sel.'select;
+    if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nested {
             if ns.forEach is string || ns.forEachOrNull is string {
                 // Nested forEach: use its own context.
                 TranspilerContext? nestedCtx = lookupForEachContext(contextMap, ns);
                 if nestedCtx is TranspilerContext {
-                    ViewDefinitionSelectColumn[]? nestedCols = ns.column;
-                    if nestedCols is ViewDefinitionSelectColumn[] {
-                        foreach ViewDefinitionSelectColumn col in nestedCols {
+                    sql_on_fhir_lib:ViewDefinitionSelectColumn[]? nestedCols = ns.column;
+                    if nestedCols is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+                        foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in nestedCols {
                             string expr = check generateColumnExpression(col, nestedCtx);
                             parts.push(expr + " AS \"" + col.name + "\"");
                         }
@@ -475,9 +477,9 @@ isolated function collectForEachSelectColumns(
                 }
             } else {
                 // Non-forEach nested: inherit parent forEach context.
-                ViewDefinitionSelectColumn[]? nestedCols = ns.column;
-                if nestedCols is ViewDefinitionSelectColumn[] {
-                    foreach ViewDefinitionSelectColumn col in nestedCols {
+                sql_on_fhir_lib:ViewDefinitionSelectColumn[]? nestedCols = ns.column;
+                if nestedCols is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+                    foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in nestedCols {
                         string expr = check generateColumnExpression(col, forEachCtx);
                         parts.push(expr + " AS \"" + col.name + "\"");
                     }
@@ -487,14 +489,14 @@ isolated function collectForEachSelectColumns(
     }
 
     // Chosen unionAll branch columns.
-    ViewDefinitionSelect[]? unionAll = sel.unionAll;
-    if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-        ViewDefinitionSelect branch = unionAll[unionChoice];
+    sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+    if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+        sql_on_fhir_lib:ViewDefinitionSelect branch = unionAll[unionChoice];
         TranspilerContext? branchCtx = lookupForEachContext(contextMap, branch);
         TranspilerContext effectiveCtx = branchCtx is TranspilerContext ? branchCtx : forEachCtx;
-        ViewDefinitionSelectColumn[]? branchCols = branch.column;
-        if branchCols is ViewDefinitionSelectColumn[] {
-            foreach ViewDefinitionSelectColumn col in branchCols {
+        sql_on_fhir_lib:ViewDefinitionSelectColumn[]? branchCols = branch.column;
+        if branchCols is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+            foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in branchCols {
                 string expr = check generateColumnExpression(col, effectiveCtx);
                 parts.push(expr + " AS \"" + col.name + "\"");
             }
@@ -516,7 +518,7 @@ isolated function collectForEachSelectColumns(
 # + contextMap - The forEach context map
 # + return - Column expression strings (`expr AS "name"`), or an error
 isolated function collectNonForEachSelectColumns(
-        ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
         int unionChoice,
         TranspilerContext ctx,
         ForEachEntry[] contextMap) returns string[]|error {
@@ -524,25 +526,25 @@ isolated function collectNonForEachSelectColumns(
     string[] parts = [];
 
     // Direct columns use the base context.
-    ViewDefinitionSelectColumn[]? columns = sel.column;
-    if columns is ViewDefinitionSelectColumn[] {
-        foreach ViewDefinitionSelectColumn col in columns {
+    sql_on_fhir_lib:ViewDefinitionSelectColumn[]? columns = sel.column;
+    if columns is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in columns {
             string expr = check generateColumnExpression(col, ctx);
             parts.push(expr + " AS \"" + col.name + "\"");
         }
     }
 
     // Nested select elements.
-    ViewDefinitionSelect[]? nested = sel.'select;
-    if nested is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect ns in nested {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? nested = sel.'select;
+    if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nested {
             if ns.forEach is string || ns.forEachOrNull is string {
                 // Nested forEach: use its forEach context.
                 TranspilerContext? forEachCtx = lookupForEachContext(contextMap, ns);
                 if forEachCtx is TranspilerContext {
-                    ViewDefinitionSelectColumn[]? nestedCols = ns.column;
-                    if nestedCols is ViewDefinitionSelectColumn[] {
-                        foreach ViewDefinitionSelectColumn col in nestedCols {
+                    sql_on_fhir_lib:ViewDefinitionSelectColumn[]? nestedCols = ns.column;
+                    if nestedCols is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+                        foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in nestedCols {
                             string expr = check generateColumnExpression(col, forEachCtx);
                             parts.push(expr + " AS \"" + col.name + "\"");
                         }
@@ -550,9 +552,9 @@ isolated function collectNonForEachSelectColumns(
                 }
             } else {
                 // Non-forEach nested: use base context.
-                ViewDefinitionSelectColumn[]? nestedCols = ns.column;
-                if nestedCols is ViewDefinitionSelectColumn[] {
-                    foreach ViewDefinitionSelectColumn col in nestedCols {
+                sql_on_fhir_lib:ViewDefinitionSelectColumn[]? nestedCols = ns.column;
+                if nestedCols is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+                    foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in nestedCols {
                         string expr = check generateColumnExpression(col, ctx);
                         parts.push(expr + " AS \"" + col.name + "\"");
                     }
@@ -562,14 +564,14 @@ isolated function collectNonForEachSelectColumns(
     }
 
     // Chosen unionAll branch columns.
-    ViewDefinitionSelect[]? unionAll = sel.unionAll;
-    if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-        ViewDefinitionSelect branch = unionAll[unionChoice];
+    sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+    if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+        sql_on_fhir_lib:ViewDefinitionSelect branch = unionAll[unionChoice];
         TranspilerContext? branchCtx = lookupForEachContext(contextMap, branch);
         TranspilerContext effectiveCtx = branchCtx is TranspilerContext ? branchCtx : ctx;
-        ViewDefinitionSelectColumn[]? branchCols = branch.column;
-        if branchCols is ViewDefinitionSelectColumn[] {
-            foreach ViewDefinitionSelectColumn col in branchCols {
+        sql_on_fhir_lib:ViewDefinitionSelectColumn[]? branchCols = branch.column;
+        if branchCols is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+            foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in branchCols {
                 string expr = check generateColumnExpression(col, effectiveCtx);
                 parts.push(expr + " AS \"" + col.name + "\"");
             }
@@ -590,7 +592,7 @@ isolated function collectNonForEachSelectColumns(
 #
 # + sel - The select element
 # + return - The raw forEach path string
-isolated function resolveForEachPath(ViewDefinitionSelect sel) returns string {
+isolated function resolveForEachPath(sql_on_fhir_lib:ViewDefinitionSelect sel) returns string {
     string? fe = sel.forEach;
     if fe is string {
         return fe;
@@ -607,7 +609,7 @@ isolated function resolveForEachPath(ViewDefinitionSelect sel) returns string {
 # + combination - The select combination to search
 # + sel - The select element to find
 # + return - The index, or `-1` if not found
-isolated function indexOfSelect(SelectCombination combination, ViewDefinitionSelect sel) returns int {
+isolated function indexOfSelect(SelectCombination combination, sql_on_fhir_lib:ViewDefinitionSelect sel) returns int {
     foreach int i in 0 ..< combination.selects.length() {
         if combination.selects[i] === sel {
             return i;

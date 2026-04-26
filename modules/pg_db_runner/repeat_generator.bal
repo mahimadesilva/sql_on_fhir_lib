@@ -14,11 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import mahima_de_silva/sql_on_fhir_lib;
+
 // ========================================
 // SQL-ON-FHIR REPEAT STATEMENT GENERATOR
 // ========================================
 // Generates PostgreSQL SELECT statements with recursive CTEs for
-// ViewDefinition select elements that use `repeat`.
+// sql_on_fhir_lib:ViewDefinition select elements that use `repeat`.
 //
 // PostgreSQL equivalent of the T-SQL RepeatProcessor (recursive CTE with
 // CROSS APPLY OPENJSON). The CTE has columns (resource_id, item_json, depth):
@@ -45,7 +47,7 @@
 # + paths - FHIRPath expressions to follow recursively (from `sel.repeat`)
 # + sourceExpr - JSONB source for the anchor (e.g., `"r.resource"`)
 type RepeatEntry record {|
-    ViewDefinitionSelect sel;
+    sql_on_fhir_lib:ViewDefinitionSelect sel;
     TranspilerContext ctx;
     string cteAlias;
     string[] paths;
@@ -63,19 +65,19 @@ type RepeatEntry record {|
 # a single `WITH RECURSIVE` clause at the top of the final query.
 #
 # + combination - The select combination to generate SQL for
-# + viewDef - The ViewDefinition
+# + viewDef - The sql_on_fhir_lib:ViewDefinition
 # + ctx - The transpiler context
 # + startCounter - Starting counter for CTE alias generation (shared across combinations)
 # + return - `[statement, cteDefinitions, nextCounter]` or an error
 isolated function generateRepeatStatement(
         SelectCombination combination,
-        ViewDefinition viewDef,
+        sql_on_fhir_lib:ViewDefinition viewDef,
         TranspilerContext ctx,
         int startCounter) returns [string, string[], int]|error {
 
     string fromClause = generateFromClause(ctx.resourceAlias, ctx.tableName);
 
-    [RepeatEntry[], ViewDefinitionSelect[], int] repeatResult =
+    [RepeatEntry[], sql_on_fhir_lib:ViewDefinitionSelect[], int] repeatResult =
         buildRepeatContextMap(combination.selects, ctx, combination, startCounter);
     RepeatEntry[] repeatEntries = repeatResult[0];
     int nextCounter = repeatResult[2];
@@ -88,10 +90,10 @@ isolated function generateRepeatStatement(
 
     string joinClauses = buildRepeatJoinClauses(repeatEntries, ctx.resourceAlias);
 
-    [ForEachEntry[], ViewDefinitionSelect[]] feResult =
+    [ForEachEntry[], sql_on_fhir_lib:ViewDefinitionSelect[]] feResult =
         buildForEachEntriesForRepeat(combination, repeatEntries, ctx);
     ForEachEntry[] forEachEntries = feResult[0];
-    ViewDefinitionSelect[] topLevelForEach = feResult[1];
+    sql_on_fhir_lib:ViewDefinitionSelect[] topLevelForEach = feResult[1];
 
     string lateralClauses = buildLateralJoinClauses(forEachEntries, topLevelForEach, combination);
 
@@ -125,17 +127,17 @@ isolated function generateRepeatStatement(
 # + startCounter - Starting counter for CTE alias generation
 # + return - `[entries, topLevelRepeat, nextCounter]`
 isolated function buildRepeatContextMap(
-        ViewDefinitionSelect[] selects,
+        sql_on_fhir_lib:ViewDefinitionSelect[] selects,
         TranspilerContext baseCtx,
         SelectCombination combination,
-        int startCounter) returns [RepeatEntry[], ViewDefinitionSelect[], int] {
+        int startCounter) returns [RepeatEntry[], sql_on_fhir_lib:ViewDefinitionSelect[], int] {
 
-    ViewDefinitionSelect[] topLevelRepeat = collectTopLevelRepeat(selects, combination);
+    sql_on_fhir_lib:ViewDefinitionSelect[] topLevelRepeat = collectTopLevelRepeat(selects, combination);
     RepeatEntry[] entries = [];
     int counter = startCounter;
     string baseSource = baseCtx.resourceAlias + "." + baseCtx.resourceColumn;
 
-    foreach ViewDefinitionSelect sel in topLevelRepeat {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect sel in topLevelRepeat {
         string cteAlias = "repeat_" + counter.toString();
         counter += 1;
         string[] paths = sel.repeat ?: [];
@@ -170,20 +172,20 @@ isolated function buildRepeatContextMap(
 # + combination - The select combination for union branch resolution
 # + return - Ordered list of top-level repeat select elements
 isolated function collectTopLevelRepeat(
-        ViewDefinitionSelect[] selects,
-        SelectCombination combination) returns ViewDefinitionSelect[] {
+        sql_on_fhir_lib:ViewDefinitionSelect[] selects,
+        SelectCombination combination) returns sql_on_fhir_lib:ViewDefinitionSelect[] {
 
-    ViewDefinitionSelect[] result = [];
+    sql_on_fhir_lib:ViewDefinitionSelect[] result = [];
 
-    foreach ViewDefinitionSelect sel in selects {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect sel in selects {
         if isRepeatSelect(sel) {
             result.push(sel);
             continue;
         }
 
-        ViewDefinitionSelect[]? nested = sel.'select;
-        if nested is ViewDefinitionSelect[] {
-            foreach ViewDefinitionSelect ns in nested {
+        sql_on_fhir_lib:ViewDefinitionSelect[]? nested = sel.'select;
+        if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+            foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nested {
                 if isRepeatSelect(ns) {
                     result.push(ns);
                 }
@@ -195,15 +197,15 @@ isolated function collectTopLevelRepeat(
             continue;
         }
         int unionChoice = combination.unionChoices[selIdx];
-        ViewDefinitionSelect[]? unionAll = sel.unionAll;
-        if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-            ViewDefinitionSelect branch = unionAll[unionChoice];
+        sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+        if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+            sql_on_fhir_lib:ViewDefinitionSelect branch = unionAll[unionChoice];
             if isRepeatSelect(branch) {
                 result.push(branch);
             } else {
-                ViewDefinitionSelect[]? branchNested = branch.'select;
-                if branchNested is ViewDefinitionSelect[] {
-                    foreach ViewDefinitionSelect ns in branchNested {
+                sql_on_fhir_lib:ViewDefinitionSelect[]? branchNested = branch.'select;
+                if branchNested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+                    foreach sql_on_fhir_lib:ViewDefinitionSelect ns in branchNested {
                         if isRepeatSelect(ns) {
                             result.push(ns);
                         }
@@ -220,7 +222,7 @@ isolated function collectTopLevelRepeat(
 #
 # + sel - The select element to check
 # + return - `true` if `sel.repeat` is a non-empty array
-isolated function isRepeatSelect(ViewDefinitionSelect sel) returns boolean {
+isolated function isRepeatSelect(sql_on_fhir_lib:ViewDefinitionSelect sel) returns boolean {
     string[]? rep = sel.repeat;
     return rep is string[] && rep.length() > 0;
 }
@@ -446,15 +448,15 @@ isolated function buildRepeatJoinClauses(RepeatEntry[] entries, string resourceA
 isolated function buildForEachEntriesForRepeat(
         SelectCombination combination,
         RepeatEntry[] repeatEntries,
-        TranspilerContext baseCtx) returns [ForEachEntry[], ViewDefinitionSelect[]] {
+        TranspilerContext baseCtx) returns [ForEachEntry[], sql_on_fhir_lib:ViewDefinitionSelect[]] {
 
     ForEachEntry[] entries = [];
-    ViewDefinitionSelect[] topLevelForEach = [];
+    sql_on_fhir_lib:ViewDefinitionSelect[] topLevelForEach = [];
     int counter = 0;
     string baseSource = baseCtx.resourceAlias + "." + baseCtx.resourceColumn;
 
     foreach int i in 0 ..< combination.selects.length() {
-        ViewDefinitionSelect sel = combination.selects[i];
+        sql_on_fhir_lib:ViewDefinitionSelect sel = combination.selects[i];
         int unionChoice = combination.unionChoices[i];
 
         if isRepeatSelect(sel) {
@@ -472,9 +474,9 @@ isolated function buildForEachEntriesForRepeat(
                     sel, repeatEntries, baseCtx, baseSource, counter, entries, topLevelForEach);
         }
 
-        ViewDefinitionSelect[]? unionAll = sel.unionAll;
-        if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-            ViewDefinitionSelect branch = unionAll[unionChoice];
+        sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+        if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+            sql_on_fhir_lib:ViewDefinitionSelect branch = unionAll[unionChoice];
             if isRepeatSelect(branch) {
                 counter = collectForEachChildrenOfRepeat(
                         branch, repeatEntries, baseCtx, counter, entries, topLevelForEach);
@@ -507,12 +509,12 @@ isolated function buildForEachEntriesForRepeat(
 # + topLevelForEach - Mutable list to which new top-level forEach selects are appended
 # + return - The next forEach alias counter value
 isolated function collectForEachChildrenOfRepeat(
-        ViewDefinitionSelect repeatSel,
+        sql_on_fhir_lib:ViewDefinitionSelect repeatSel,
         RepeatEntry[] repeatEntries,
         TranspilerContext baseCtx,
         int startCounter,
         ForEachEntry[] entries,
-        ViewDefinitionSelect[] topLevelForEach) returns int {
+        sql_on_fhir_lib:ViewDefinitionSelect[] topLevelForEach) returns int {
 
     int counter = startCounter;
     string cteSource = getCteSourceForSelect(repeatSel, repeatEntries);
@@ -520,9 +522,9 @@ isolated function collectForEachChildrenOfRepeat(
         return counter;
     }
 
-    ViewDefinitionSelect[]? nested = repeatSel.'select;
-    if nested is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect ns in nested {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? nested = repeatSel.'select;
+    if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nested {
             if ns.forEach is string || ns.forEachOrNull is string {
                 [ForEachEntry[], int] r = buildForEachEntries(ns, cteSource, baseCtx, counter);
                 foreach ForEachEntry e in r[0] {
@@ -549,18 +551,18 @@ isolated function collectForEachChildrenOfRepeat(
 # + topLevelForEach - Mutable list to which new top-level forEach selects are appended
 # + return - The next forEach alias counter value
 isolated function collectForEachFromPlainSelect(
-        ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
         RepeatEntry[] repeatEntries,
         TranspilerContext baseCtx,
         string baseSource,
         int startCounter,
         ForEachEntry[] entries,
-        ViewDefinitionSelect[] topLevelForEach) returns int {
+        sql_on_fhir_lib:ViewDefinitionSelect[] topLevelForEach) returns int {
 
     int counter = startCounter;
-    ViewDefinitionSelect[]? nested = sel.'select;
-    if nested is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect ns in nested {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? nested = sel.'select;
+    if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nested {
             if ns.forEach is string || ns.forEachOrNull is string {
                 [ForEachEntry[], int] r = buildForEachEntries(ns, baseSource, baseCtx, counter);
                 foreach ForEachEntry e in r[0] {
@@ -582,7 +584,7 @@ isolated function collectForEachFromPlainSelect(
 # + sel - The select element
 # + entries - The repeat entries
 # + return - `<cteAlias>.item_json`, or `""` if no matching entry
-isolated function getCteSourceForSelect(ViewDefinitionSelect sel, RepeatEntry[] entries) returns string {
+isolated function getCteSourceForSelect(sql_on_fhir_lib:ViewDefinitionSelect sel, RepeatEntry[] entries) returns string {
     foreach RepeatEntry entry in entries {
         if entry.sel === sel {
             return entry.cteAlias + ".item_json";
@@ -617,29 +619,29 @@ isolated function generateRepeatSelectClause(
     string[] columnParts = [];
 
     foreach int i in 0 ..< combination.selects.length() {
-        ViewDefinitionSelect sel = combination.selects[i];
+        sql_on_fhir_lib:ViewDefinitionSelect sel = combination.selects[i];
         int unionChoice = combination.unionChoices[i];
 
         TranspilerContext selCtx = selectContextFor(sel, baseCtx, repeatEntries, forEachEntries);
         check appendColumns(sel.column, selCtx, columnParts);
 
-        ViewDefinitionSelect[]? nested = sel.'select;
-        if nested is ViewDefinitionSelect[] {
-            foreach ViewDefinitionSelect ns in nested {
+        sql_on_fhir_lib:ViewDefinitionSelect[]? nested = sel.'select;
+        if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+            foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nested {
                 TranspilerContext nsCtx = selectContextFor(ns, selCtx, repeatEntries, forEachEntries);
                 check appendColumns(ns.column, nsCtx, columnParts);
             }
         }
 
-        ViewDefinitionSelect[]? unionAll = sel.unionAll;
-        if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-            ViewDefinitionSelect branch = unionAll[unionChoice];
+        sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+        if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+            sql_on_fhir_lib:ViewDefinitionSelect branch = unionAll[unionChoice];
             TranspilerContext branchCtx = selectContextFor(branch, selCtx, repeatEntries, forEachEntries);
             check appendColumns(branch.column, branchCtx, columnParts);
 
-            ViewDefinitionSelect[]? branchNested = branch.'select;
-            if branchNested is ViewDefinitionSelect[] {
-                foreach ViewDefinitionSelect ns in branchNested {
+            sql_on_fhir_lib:ViewDefinitionSelect[]? branchNested = branch.'select;
+            if branchNested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+                foreach sql_on_fhir_lib:ViewDefinitionSelect ns in branchNested {
                     TranspilerContext nsCtx = selectContextFor(ns, branchCtx, repeatEntries, forEachEntries);
                     check appendColumns(ns.column, nsCtx, columnParts);
                 }
@@ -660,11 +662,11 @@ isolated function generateRepeatSelectClause(
 # + columnParts - Mutable list to which `expr AS "name"` strings are appended
 # + return - `()` on success, or an error from `generateColumnExpression`
 isolated function appendColumns(
-        ViewDefinitionSelectColumn[]? columns,
+        sql_on_fhir_lib:ViewDefinitionSelectColumn[]? columns,
         TranspilerContext ctx,
         string[] columnParts) returns error? {
-    if columns is ViewDefinitionSelectColumn[] {
-        foreach ViewDefinitionSelectColumn col in columns {
+    if columns is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in columns {
             string expr = check generateColumnExpression(col, ctx);
             columnParts.push(expr + " AS \"" + col.name + "\"");
         }
@@ -684,7 +686,7 @@ isolated function appendColumns(
 # + forEachEntries - ForEach entries for this combination
 # + return - The resolved transpiler context
 isolated function selectContextFor(
-        ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
         TranspilerContext parentCtx,
         RepeatEntry[] repeatEntries,
         ForEachEntry[] forEachEntries) returns TranspilerContext {

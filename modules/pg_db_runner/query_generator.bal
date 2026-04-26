@@ -14,19 +14,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import mahima_de_silva/sql_on_fhir_lib;
+
 // ========================================
 // SQL-ON-FHIR QUERY GENERATOR
 // ========================================
-// Generates PostgreSQL SELECT statements from ViewDefinition structures.
+// Generates PostgreSQL SELECT statements from sql_on_fhir_lib:ViewDefinition structures.
 // Builds on top of expandCombinations() and the FHIRPath transpiler.
 
-# The result of expanding a single union combination from a ViewDefinition.
+# The result of expanding a single union combination from a sql_on_fhir_lib:ViewDefinition.
 # `selects` holds the select elements contributing to this combination.
 # `unionChoices` holds the union branch index chosen for each select element
 # (-1 means the select had no unionAll; >= 0 is the index into its unionAll array).
 type SelectCombination record {|
     # Select elements that contribute to this combination
-    ViewDefinitionSelect[] selects;
+    sql_on_fhir_lib:ViewDefinitionSelect[] selects;
     # Parallel array of union branch indices (-1 = no union chosen)
     int[] unionChoices;
 |};
@@ -35,7 +37,7 @@ type SelectCombination record {|
 // PUBLIC API
 // ========================================
 
-# Generate a PostgreSQL query for a ViewDefinition.
+# Generate a PostgreSQL query for a sql_on_fhir_lib:ViewDefinition.
 #
 # Expands all `unionAll` combinations and joins them with `UNION ALL`.
 # When any combination contains a `repeat` directive, the collected recursive
@@ -43,11 +45,11 @@ type SelectCombination record {|
 # The supplied `TranspilerContext` controls the table name, JSONB column, and
 # whether a `resource_type` filter is emitted in the WHERE clause.
 #
-# + viewDef - The ViewDefinition as a JSON value (converted via `cloneWithType` internally)
+# + viewDef - The sql_on_fhir_lib:ViewDefinition as a JSON value (converted via `cloneWithType` internally)
 # + ctx - The transpiler context (must include `tableName` and `resourceColumn`)
 # + return - The generated SQL string, or an error
 public isolated function generateQuery(json viewDef, TranspilerContext ctx) returns string|error {
-    ViewDefinition typedViewDef = check viewDef.cloneWithType(ViewDefinition);
+    sql_on_fhir_lib:ViewDefinition typedViewDef = check viewDef.cloneWithType(sql_on_fhir_lib:ViewDefinition);
     [string[], string[]] result = check generateAllSelectStatements(typedViewDef, ctx);
     string[] statements = result[0];
     string[] cteDefs = result[1];
@@ -63,11 +65,11 @@ public isolated function generateQuery(json viewDef, TranspilerContext ctx) retu
 # definitions contributed by repeat selects so they can be consolidated at the
 # query level.
 #
-# + viewDef - The typed ViewDefinition (already converted from JSON)
+# + viewDef - The typed sql_on_fhir_lib:ViewDefinition (already converted from JSON)
 # + ctx - The transpiler context
 # + return - `[statements, cteDefinitions]` across all combinations, or an error
 isolated function generateAllSelectStatements(
-        ViewDefinition viewDef,
+        sql_on_fhir_lib:ViewDefinition viewDef,
         TranspilerContext ctx) returns [string[], string[]]|error {
 
     SelectCombination[] combinations = expandCombinations(viewDef.'select);
@@ -92,13 +94,13 @@ isolated function generateAllSelectStatements(
 # inside a repeat is handled by `generateRepeatStatement`.
 #
 # + combination - The select combination to generate SQL for
-# + viewDef - The ViewDefinition
+# + viewDef - The sql_on_fhir_lib:ViewDefinition
 # + ctx - The transpiler context
 # + counter - The shared CTE alias counter (threaded across combinations)
 # + return - `[statement, cteDefinitions, nextCounter]`, or an error
 isolated function generateStatementForCombination(
         SelectCombination combination,
-        ViewDefinition viewDef,
+        sql_on_fhir_lib:ViewDefinition viewDef,
         TranspilerContext ctx,
         int counter) returns [string, string[], int]|error {
 
@@ -117,12 +119,12 @@ isolated function generateStatementForCombination(
 # Assembles SELECT, FROM, and WHERE clauses from the combination.
 #
 # + combination - The select combination (must have no forEach/repeat)
-# + viewDef - The ViewDefinition
+# + viewDef - The sql_on_fhir_lib:ViewDefinition
 # + ctx - The transpiler context
 # + return - The generated SQL string, or an error
 isolated function generateSimpleStatement(
         SelectCombination combination,
-        ViewDefinition viewDef,
+        sql_on_fhir_lib:ViewDefinition viewDef,
         TranspilerContext ctx) returns string|error {
 
     string selectClause = check generateSimpleSelectClause(combination, ctx);
@@ -153,7 +155,7 @@ isolated function generateSimpleSelectClause(SelectCombination combination, Tran
     string[] columnParts = [];
 
     foreach int i in 0 ..< combination.selects.length() {
-        ViewDefinitionSelect sel = combination.selects[i];
+        sql_on_fhir_lib:ViewDefinitionSelect sel = combination.selects[i];
         int unionChoice = combination.unionChoices[i];
 
         // Collect columns from the select element itself (skips forEach selects).
@@ -163,12 +165,12 @@ isolated function generateSimpleSelectClause(SelectCombination combination, Tran
         }
 
         // Collect direct columns from the chosen unionAll branch (if any).
-        ViewDefinitionSelect[]? unionAll = sel.unionAll;
-        if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-            ViewDefinitionSelect chosenBranch = unionAll[unionChoice];
-            ViewDefinitionSelectColumn[]? branchCols = chosenBranch.column;
-            if branchCols is ViewDefinitionSelectColumn[] {
-                foreach ViewDefinitionSelectColumn col in branchCols {
+        sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+        if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+            sql_on_fhir_lib:ViewDefinitionSelect chosenBranch = unionAll[unionChoice];
+            sql_on_fhir_lib:ViewDefinitionSelectColumn[]? branchCols = chosenBranch.column;
+            if branchCols is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+                foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in branchCols {
                     string expr = check generateColumnExpression(col, ctx);
                     columnParts.push(expr + " AS \"" + col.name + "\"");
                 }
@@ -190,24 +192,24 @@ isolated function generateSimpleSelectClause(SelectCombination combination, Tran
 # + sel - The select element to collect columns from
 # + ctx - The transpiler context
 # + return - Column expression strings, or an error
-isolated function collectSelectColumns(ViewDefinitionSelect sel, TranspilerContext ctx) returns string[]|error {
+isolated function collectSelectColumns(sql_on_fhir_lib:ViewDefinitionSelect sel, TranspilerContext ctx) returns string[]|error {
     if sel.forEach is string || sel.forEachOrNull is string {
         return [];
     }
 
     string[] parts = [];
 
-    ViewDefinitionSelectColumn[]? columns = sel.column;
-    if columns is ViewDefinitionSelectColumn[] {
-        foreach ViewDefinitionSelectColumn col in columns {
+    sql_on_fhir_lib:ViewDefinitionSelectColumn[]? columns = sel.column;
+    if columns is sql_on_fhir_lib:ViewDefinitionSelectColumn[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in columns {
             string expr = check generateColumnExpression(col, ctx);
             parts.push(expr + " AS \"" + col.name + "\"");
         }
     }
 
-    ViewDefinitionSelect[]? nested = sel.'select;
-    if nested is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect nestedSel in nested {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? nested = sel.'select;
+    if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect nestedSel in nested {
             string[] nestedCols = check collectSelectColumns(nestedSel, ctx);
             foreach string c in nestedCols {
                 parts.push(c);
@@ -227,7 +229,7 @@ isolated function collectSelectColumns(ViewDefinitionSelect sel, TranspilerConte
 # + col - The column definition
 # + ctx - The transpiler context
 # + return - The SQL expression string, or an error
-isolated function generateColumnExpression(ViewDefinitionSelectColumn col, TranspilerContext ctx) returns string|error {
+isolated function generateColumnExpression(sql_on_fhir_lib:ViewDefinitionSelectColumn col, TranspilerContext ctx) returns string|error {
     string expression = check transpile(col.path, ctx);
 
     string? fhirType = col.'type;
@@ -235,11 +237,11 @@ isolated function generateColumnExpression(ViewDefinitionSelectColumn col, Trans
         return expression;
     }
 
-    // Convert ViewDefinitionSelectColumnTag[] to ColumnTag[] for inferSqlType.
+    // Convert sql_on_fhir_lib:ViewDefinitionSelectColumnTag[] to ColumnTag[] for inferSqlType.
     ColumnTag[]? colTags = ();
-    ViewDefinitionSelectColumnTag[]? rawTags = col.tag;
-    if rawTags is ViewDefinitionSelectColumnTag[] {
-        colTags = from ViewDefinitionSelectColumnTag t in rawTags
+    sql_on_fhir_lib:ViewDefinitionSelectColumnTag[]? rawTags = col.tag;
+    if rawTags is sql_on_fhir_lib:ViewDefinitionSelectColumnTag[] {
+        colTags = from sql_on_fhir_lib:ViewDefinitionSelectColumnTag t in rawTags
             select {name: t.name, value: t.value};
     }
 
@@ -282,7 +284,7 @@ isolated function generateFromClause(string resourceAlias, string tableName) ret
 # Build the WHERE clause combining resource type filter and view-level filters.
 #
 # Includes `<alias>.resource_type = '<resource>'` only when `ctx.filterByResourceType` is `true`.
-# Appends each `ViewDefinitionWhere` condition by transpiling its FHIRPath expression.
+# Appends each `sql_on_fhir_lib:ViewDefinitionWhere` condition by transpiling its FHIRPath expression.
 #
 # + resourceType - The FHIR resource type string (e.g. `"Patient"`)
 # + resourceAlias - SQL alias for the resource table
@@ -292,7 +294,7 @@ isolated function generateFromClause(string resourceAlias, string tableName) ret
 isolated function buildWhereClause(
         string resourceType,
         string resourceAlias,
-        ViewDefinitionWhere[]? whereConditions,
+        sql_on_fhir_lib:ViewDefinitionWhere[]? whereConditions,
         TranspilerContext ctx) returns string?|error {
 
     string[] conditions = [];
@@ -300,8 +302,8 @@ isolated function buildWhereClause(
         conditions.push(resourceAlias + ".resource_type = '" + resourceType + "'");
     }
 
-    if whereConditions is ViewDefinitionWhere[] {
-        foreach ViewDefinitionWhere w in whereConditions {
+    if whereConditions is sql_on_fhir_lib:ViewDefinitionWhere[] {
+        foreach sql_on_fhir_lib:ViewDefinitionWhere w in whereConditions {
             string condition = check transpile(w.path, ctx);
             if !isBooleanExpression(condition) {
                 condition = "(" + condition + " IS NOT NULL AND " + condition + " != 'false')";
@@ -326,21 +328,21 @@ isolated function buildWhereClause(
 #
 # + sel - The select element to check
 # + return - `true` if the element or any descendant uses forEach/forEachOrNull
-isolated function selectHasForEach(ViewDefinitionSelect sel) returns boolean {
+isolated function selectHasForEach(sql_on_fhir_lib:ViewDefinitionSelect sel) returns boolean {
     if sel.forEach is string || sel.forEachOrNull is string {
         return true;
     }
-    ViewDefinitionSelect[]? nested = sel.'select;
-    if nested is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect ns in nested {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? nested = sel.'select;
+    if nested is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect ns in nested {
             if selectHasForEach(ns) {
                 return true;
             }
         }
     }
-    ViewDefinitionSelect[]? ua = sel.unionAll;
-    if ua is ViewDefinitionSelect[] {
-        foreach ViewDefinitionSelect u in ua {
+    sql_on_fhir_lib:ViewDefinitionSelect[]? ua = sel.unionAll;
+    if ua is sql_on_fhir_lib:ViewDefinitionSelect[] {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect u in ua {
             if selectHasForEach(u) {
                 return true;
             }
@@ -358,14 +360,14 @@ isolated function selectHasForEach(ViewDefinitionSelect sel) returns boolean {
 # + return - `true` if any select (or any descendant) uses forEach/forEachOrNull
 isolated function combinationHasForEach(SelectCombination combination) returns boolean {
     foreach int i in 0 ..< combination.selects.length() {
-        ViewDefinitionSelect sel = combination.selects[i];
+        sql_on_fhir_lib:ViewDefinitionSelect sel = combination.selects[i];
         if selectHasForEach(sel) {
             return true;
         }
         int unionChoice = combination.unionChoices[i];
-        ViewDefinitionSelect[]? unionAll = sel.unionAll;
-        if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-            ViewDefinitionSelect branch = unionAll[unionChoice];
+        sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+        if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+            sql_on_fhir_lib:ViewDefinitionSelect branch = unionAll[unionChoice];
             if selectHasForEach(branch) {
                 return true;
             }
@@ -382,15 +384,15 @@ isolated function combinationHasForEach(SelectCombination combination) returns b
 # + return - `true` if any select (or chosen union branch) uses repeat
 isolated function combinationHasRepeat(SelectCombination combination) returns boolean {
     foreach int i in 0 ..< combination.selects.length() {
-        ViewDefinitionSelect sel = combination.selects[i];
+        sql_on_fhir_lib:ViewDefinitionSelect sel = combination.selects[i];
         string[]? rep = sel.repeat;
         if rep is string[] && rep.length() > 0 {
             return true;
         }
         int unionChoice = combination.unionChoices[i];
-        ViewDefinitionSelect[]? unionAll = sel.unionAll;
-        if unionAll is ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
-            ViewDefinitionSelect branch = unionAll[unionChoice];
+        sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+        if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionChoice >= 0 && unionChoice < unionAll.length() {
+            sql_on_fhir_lib:ViewDefinitionSelect branch = unionAll[unionChoice];
             string[]? branchRep = branch.repeat;
             if branchRep is string[] && branchRep.length() > 0 {
                 return true;

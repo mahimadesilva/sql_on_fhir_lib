@@ -1,19 +1,20 @@
 import ballerina/test;
+import mahima_de_silva/sql_on_fhir_lib;
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 # Convenience constructor: a bare select element with no special fields.
-# + return - empty `ViewDefinitionSelect`
-isolated function plainSelect() returns ViewDefinitionSelect {
+# + return - empty `sql_on_fhir_lib:ViewDefinitionSelect`
+isolated function plainSelect() returns sql_on_fhir_lib:ViewDefinitionSelect {
     return {};
 }
 
 # Convenience constructor: a select element with the given unionAll branches.
 # + branches - union branch array to set on the select element
-# + return - `ViewDefinitionSelect` with `unionAll` set to `branches`
-isolated function selectWithUnion(ViewDefinitionSelect[] branches) returns ViewDefinitionSelect {
+# + return - `sql_on_fhir_lib:ViewDefinitionSelect` with `unionAll` set to `branches`
+isolated function selectWithUnion(sql_on_fhir_lib:ViewDefinitionSelect[] branches) returns sql_on_fhir_lib:ViewDefinitionSelect {
     return {unionAll: branches};
 }
 
@@ -31,7 +32,7 @@ function testExpandEmpty() {
 
 @test:Config {}
 function testExpandNoUnion() {
-    ViewDefinitionSelect sel = plainSelect();
+    sql_on_fhir_lib:ViewDefinitionSelect sel = plainSelect();
     SelectCombination[] result = expandCombinations([sel]);
     test:assertEquals(result.length(), 1);
     test:assertEquals(result[0].selects.length(), 1);
@@ -41,7 +42,7 @@ function testExpandNoUnion() {
 @test:Config {}
 function testExpandSingleUnion() {
     // One select with 2 simple unionAll branches → 2 combinations.
-    ViewDefinitionSelect sel = selectWithUnion([plainSelect(), plainSelect()]);
+    sql_on_fhir_lib:ViewDefinitionSelect sel = selectWithUnion([plainSelect(), plainSelect()]);
     SelectCombination[] result = expandCombinations([sel]);
 
     test:assertEquals(result.length(), 2);
@@ -64,8 +65,8 @@ function testExpandTwoSelectsNoUnion() {
 @test:Config {}
 function testExpandCartesianProduct() {
     // Select A (no union) × select B (2 union branches) → 2 combinations.
-    ViewDefinitionSelect selA = plainSelect();
-    ViewDefinitionSelect selB = selectWithUnion([plainSelect(), plainSelect()]);
+    sql_on_fhir_lib:ViewDefinitionSelect selA = plainSelect();
+    sql_on_fhir_lib:ViewDefinitionSelect selB = selectWithUnion([plainSelect(), plainSelect()]);
     SelectCombination[] result = expandCombinations([selA, selB]);
 
     test:assertEquals(result.length(), 2);
@@ -79,8 +80,8 @@ function testExpandCartesianProduct() {
 @test:Config {}
 function testExpandTwoSelectsBothUnion() {
     // Select A (2 union branches) × select B (2 union branches) → 4 combinations.
-    ViewDefinitionSelect selA = selectWithUnion([plainSelect(), plainSelect()]);
-    ViewDefinitionSelect selB = selectWithUnion([plainSelect(), plainSelect()]);
+    sql_on_fhir_lib:ViewDefinitionSelect selA = selectWithUnion([plainSelect(), plainSelect()]);
+    sql_on_fhir_lib:ViewDefinitionSelect selB = selectWithUnion([plainSelect(), plainSelect()]);
     SelectCombination[] result = expandCombinations([selA, selB]);
 
     test:assertEquals(result.length(), 4);
@@ -96,8 +97,8 @@ function testExpandNestedUnion() {
     //   branch 0: simple (no nested union)
     //   branch 1: itself has 2 unionAll branches (nested)
     // Expected: 3 combinations total (1 + 2).
-    ViewDefinitionSelect nestedBranch = selectWithUnion([plainSelect(), plainSelect()]);
-    ViewDefinitionSelect outerSel = selectWithUnion([plainSelect(), nestedBranch]);
+    sql_on_fhir_lib:ViewDefinitionSelect nestedBranch = selectWithUnion([plainSelect(), plainSelect()]);
+    sql_on_fhir_lib:ViewDefinitionSelect outerSel = selectWithUnion([plainSelect(), nestedBranch]);
     SelectCombination[] result = expandCombinations([outerSel]);
 
     test:assertEquals(result.length(), 3);

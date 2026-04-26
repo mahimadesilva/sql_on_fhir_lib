@@ -14,17 +14,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Expand all possible `unionAll` combinations from a ViewDefinition's select array.
+import mahima_de_silva/sql_on_fhir_lib;
+
+# Expand all possible `unionAll` combinations from a sql_on_fhir_lib:ViewDefinition's select array.
 #
 # The result is the Cartesian product of union choices across all select elements.
 # Each `SelectCombination` records which union branch was taken for each element
 # (-1 = no union, >= 0 = index into that element's `unionAll` array).
 #
-# + selects - top-level select elements from the ViewDefinition
+# + selects - top-level select elements from the sql_on_fhir_lib:ViewDefinition
 # + return - every possible combination of union choices
-isolated function expandCombinations(ViewDefinitionSelect[] selects) returns SelectCombination[] {
+isolated function expandCombinations(sql_on_fhir_lib:ViewDefinitionSelect[] selects) returns SelectCombination[] {
     SelectCombination[] combinations = [{selects: [], unionChoices: []}];
-    foreach ViewDefinitionSelect sel in selects {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect sel in selects {
         combinations = expandSelectCombinations(sel, combinations);
     }
     return combinations;
@@ -36,13 +38,13 @@ isolated function expandCombinations(ViewDefinitionSelect[] selects) returns Sel
 # + currentCombinations - combinations accumulated so far
 # + return - updated combinations with `sel` appended to each
 isolated function expandSelectCombinations(
-        ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
         SelectCombination[] currentCombinations) returns SelectCombination[] {
 
     SelectCombination[] newCombinations = [];
     foreach SelectCombination combination in currentCombinations {
-        ViewDefinitionSelect[]? unionAll = sel.unionAll;
-        if unionAll is ViewDefinitionSelect[] && unionAll.length() > 0 {
+        sql_on_fhir_lib:ViewDefinitionSelect[]? unionAll = sel.unionAll;
+        if unionAll is sql_on_fhir_lib:ViewDefinitionSelect[] && unionAll.length() > 0 {
             SelectCombination[] expanded = expandUnionAllOptions(sel, unionAll, combination);
             foreach SelectCombination c in expanded {
                 newCombinations.push(c);
@@ -61,15 +63,15 @@ isolated function expandSelectCombinations(
 # + combination - the combination being extended
 # + return - one new combination per union branch (multiplied by nested branches)
 isolated function expandUnionAllOptions(
-        ViewDefinitionSelect sel,
-        ViewDefinitionSelect[] unionAll,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect[] unionAll,
         SelectCombination combination) returns SelectCombination[] {
 
     SelectCombination[] newCombinations = [];
     foreach int i in 0 ..< unionAll.length() {
-        ViewDefinitionSelect unionOption = unionAll[i];
-        ViewDefinitionSelect[]? nested = unionOption.unionAll;
-        if nested is ViewDefinitionSelect[] && nested.length() > 0 {
+        sql_on_fhir_lib:ViewDefinitionSelect unionOption = unionAll[i];
+        sql_on_fhir_lib:ViewDefinitionSelect[]? nested = unionOption.unionAll;
+        if nested is sql_on_fhir_lib:ViewDefinitionSelect[] && nested.length() > 0 {
             SelectCombination[] expanded = expandNestedUnion(sel, i, unionOption, combination);
             foreach SelectCombination c in expanded {
                 newCombinations.push(c);
@@ -90,9 +92,9 @@ isolated function expandUnionAllOptions(
 # + combination - the combination being extended
 # + return - one new combination per leaf of the nested union tree
 isolated function expandNestedUnion(
-        ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
         int unionIndex,
-        ViewDefinitionSelect unionOption,
+        sql_on_fhir_lib:ViewDefinitionSelect unionOption,
         SelectCombination combination) returns SelectCombination[] {
 
     SelectCombination[] nestedCombinations = expandSelectCombinations(
@@ -115,7 +117,7 @@ isolated function expandNestedUnion(
 # + combination - the combination being extended
 # + return - new combination with `sel` appended and `unionIndex` recorded
 isolated function addSimpleUnionCombination(
-        ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
         int unionIndex,
         SelectCombination combination) returns SelectCombination {
 
@@ -131,7 +133,7 @@ isolated function addSimpleUnionCombination(
 # + combination - the combination being extended
 # + return - new combination with `sel` appended and `-1` recorded
 isolated function addNonUnionCombination(
-        ViewDefinitionSelect sel,
+        sql_on_fhir_lib:ViewDefinitionSelect sel,
         SelectCombination combination) returns SelectCombination {
 
     return {
