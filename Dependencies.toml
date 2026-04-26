@@ -141,6 +141,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.value"}
 ]
+modules = [
+	{org = "ballerina", packageName = "io", moduleName = "io"}
+]
 
 [[package]]
 org = "ballerina"
@@ -481,12 +484,14 @@ name = "sql_on_fhir_lib"
 version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
+	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "test"},
 	{org = "ballerinax", name = "health.fhir.r4"},
 	{org = "ballerinax", name = "health.fhir.r4utils.fhirpath"}
 ]
 modules = [
 	{org = "mahima_de_silva", packageName = "sql_on_fhir_lib", moduleName = "sql_on_fhir_lib"},
-	{org = "mahima_de_silva", packageName = "sql_on_fhir_lib", moduleName = "sql_on_fhir_lib.in_memory"}
+	{org = "mahima_de_silva", packageName = "sql_on_fhir_lib", moduleName = "sql_on_fhir_lib.in_memory_runner"},
+	{org = "mahima_de_silva", packageName = "sql_on_fhir_lib", moduleName = "sql_on_fhir_lib.pg_db_runner"}
 ]
 
