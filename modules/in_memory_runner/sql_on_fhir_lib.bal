@@ -1,5 +1,7 @@
 import ballerinax/health.fhir.r4utils.fhirpath;
 
+import mahima_de_silva/sql_on_fhir_lib;
+
 // Column type for validation
 type ColumnDefinition record {
     string name;
@@ -157,12 +159,12 @@ isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? e
 }
 
 // Validates column definitions for duplicates and unionAll branch consistency
-isolated function validateColumnsTyped(ViewDefinitionSelect[] selects, ColumnDefinition[] C) returns ColumnDefinition[]|error {
+isolated function validateColumnsTyped(sql_on_fhir_lib:ViewDefinitionSelect[] selects, ColumnDefinition[] C) returns ColumnDefinition[]|error {
     ColumnDefinition[] ret = C.clone();
 
-    foreach ViewDefinitionSelect sel in selects {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect sel in selects {
         // Validate column definitions within this select node
-        foreach ViewDefinitionSelectColumn col in (sel.column ?: []) {
+        foreach sql_on_fhir_lib:ViewDefinitionSelectColumn col in (sel.column ?: []) {
             foreach ColumnDefinition existing in ret {
                 if existing.name == col.name {
                     return error("Column Already Defined: " + col.name);
@@ -190,7 +192,7 @@ isolated function validateColumnsTyped(ViewDefinitionSelect[] selects, ColumnDef
 
         // Validate unionAll branches for consistency
         if sel.unionAll != () {
-            ViewDefinitionSelect[] unionBranches = sel.unionAll ?: [];
+            sql_on_fhir_lib:ViewDefinitionSelect[] unionBranches = sel.unionAll ?: [];
             if unionBranches.length() > 0 {
                 ColumnDefinition[] u0 = check validateColumnsTyped([unionBranches[0]], ret);
                 string[] u0Names = [];
@@ -269,30 +271,54 @@ isolated function rowProduct(json[][] parts) returns json[]|error {
 }
 
 // Determines the evaluation type for a ViewDefinitionSelect node
-isolated function getOperationType(ViewDefinitionSelect sel) returns string {
-    if sel.forEach != () { return "forEach"; }
-    if sel.forEachOrNull != () { return "forEachOrNull"; }
-    if sel.repeat != () { return "repeat"; }
-    if sel.unionAll != () && sel.'select == () && sel.column == () { return "unionAll"; }
-    if sel.column != () && sel.'select == () && sel.unionAll == () { return "column"; }
+isolated function getOperationType(sql_on_fhir_lib:ViewDefinitionSelect sel) returns string {
+    if sel.forEach != () {
+        return "forEach";
+    }
+    if sel.forEachOrNull != () {
+        return "forEachOrNull";
+    }
+    if sel.repeat != () {
+        return "repeat";
+    }
+    if sel.unionAll != () && sel.'select == () && sel.column == () {
+        return "unionAll";
+    }
+    if sel.column != () && sel.'select == () && sel.unionAll == () {
+        return "column";
+    }
     return "select";
 }
 
-isolated function doEvalTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function doEvalTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     match getOperationType(sel) {
-        "column" => { return columnOperationTyped(sel, node, extensions); }
-        "select" => { return selectOperationTyped(sel, node, extensions); }
-        "forEach" => { return forEachOperationTyped(sel, node, extensions); }
-        "forEachOrNull" => { return forEachOrNullOperationTyped(sel, node, extensions); }
-        "unionAll" => { return unionAllOperationTyped(sel, node, extensions); }
-        "repeat" => { return repeatOperationTyped(sel, node, extensions); }
-        _ => { return []; }
+        "column" => {
+            return columnOperationTyped(sel, node, extensions);
+        }
+        "select" => {
+            return selectOperationTyped(sel, node, extensions);
+        }
+        "forEach" => {
+            return forEachOperationTyped(sel, node, extensions);
+        }
+        "forEachOrNull" => {
+            return forEachOrNullOperationTyped(sel, node, extensions);
+        }
+        "unionAll" => {
+            return unionAllOperationTyped(sel, node, extensions);
+        }
+        "repeat" => {
+            return repeatOperationTyped(sel, node, extensions);
+        }
+        _ => {
+            return [];
+        }
     }
 }
 
-isolated function columnOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function columnOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     map<anydata> result = {};
-    foreach ViewDefinitionSelectColumn c in (sel.column ?: []) {
+    foreach sql_on_fhir_lib:ViewDefinitionSelectColumn c in (sel.column ?: []) {
         json[] vs = check evaluateFhirPath(node, c.path, extensions);
         if c.collection ?: false {
             result[c.name] = vs;
@@ -309,7 +335,7 @@ isolated function columnOperationTyped(ViewDefinitionSelect sel, json node, Fhir
 
 // Evaluates column, unionAll, then select children of a node against the given FHIR node,
 // combining results via rowProduct. Used by select, forEach, forEachOrNull, and repeat operations.
-isolated function evalSelectChildren(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function evalSelectChildren(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     json[][] parts = [];
     if sel.column != () {
         parts.push(check columnOperationTyped(sel, node, extensions));
@@ -317,17 +343,17 @@ isolated function evalSelectChildren(ViewDefinitionSelect sel, json node, FhirPa
     if sel.unionAll != () {
         parts.push(check unionAllOperationTyped(sel, node, extensions));
     }
-    foreach ViewDefinitionSelect childSel in (sel.'select ?: []) {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect childSel in (sel.'select ?: []) {
         parts.push(check doEvalTyped(childSel, node, extensions));
     }
     return rowProduct(parts);
 }
 
-isolated function selectOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function selectOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     return evalSelectChildren(sel, node, extensions);
 }
 
-isolated function forEachOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function forEachOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     json[] nodes = check evaluateFhirPath(node, sel.forEach ?: "", extensions);
     json[] results = [];
     foreach json nodeItem in nodes {
@@ -336,7 +362,7 @@ isolated function forEachOperationTyped(ViewDefinitionSelect sel, json node, Fhi
     return results;
 }
 
-isolated function forEachOrNullOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function forEachOrNullOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     json[] nodes = check evaluateFhirPath(node, sel.forEachOrNull ?: "", extensions);
     if nodes.length() == 0 {
         nodes = [{}];
@@ -360,9 +386,9 @@ isolated function arraysUnique(json[] results) returns int {
     return uniqueColumnSets.length();
 }
 
-isolated function unionAllOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function unionAllOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     json[] result = [];
-    foreach ViewDefinitionSelect branch in (sel.unionAll ?: []) {
+    foreach sql_on_fhir_lib:ViewDefinitionSelect branch in (sel.unionAll ?: []) {
         result.push(...check doEvalTyped(branch, node, extensions));
     }
     int uniqueCount = arraysUnique(result);
@@ -398,7 +424,7 @@ isolated function recursiveTraverse(string[] paths, json node, FhirPathExtension
     return result;
 }
 
-isolated function repeatOperationTyped(ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
+isolated function repeatOperationTyped(sql_on_fhir_lib:ViewDefinitionSelect sel, json node, FhirPathExtensions? extensions = ()) returns json[]|error {
     json[] nodes = check recursiveTraverse(sel.repeat ?: [], node, extensions);
     json[] results = [];
     foreach json nodeItem in nodes {
@@ -412,7 +438,7 @@ isolated function repeatOperationTyped(ViewDefinitionSelect sel, json node, Fhir
 # + viewDefinition - The view definition
 # + extensions - Optional custom FHIRPath extension functions (getResourceKey, getReferenceKey)
 # + return - Array of result rows or error
-public isolated function evaluate(json[] resources, ViewDefinition viewDefinition, FhirPathExtensions? extensions = ()) returns json[]|error {
+public isolated function evaluate(json[] resources, sql_on_fhir_lib:ViewDefinition viewDefinition, FhirPathExtensions? extensions = ()) returns json[]|error {
     _ = check validateColumnsTyped(viewDefinition.'select, []);
 
     json[] results = [];
@@ -428,7 +454,7 @@ public isolated function evaluate(json[] resources, ViewDefinition viewDefinitio
 
         // Apply top-level where filters
         boolean include = true;
-        foreach ViewDefinitionWhere w in (viewDefinition.'where ?: []) {
+        foreach sql_on_fhir_lib:ViewDefinitionWhere w in (viewDefinition.'where ?: []) {
             json[] vals = check evaluateFhirPath('resource, w.path, extensions);
             json val = vals.length() > 0 ? vals[0] : ();
             if val !== () && val !is boolean {
@@ -445,7 +471,7 @@ public isolated function evaluate(json[] resources, ViewDefinition viewDefinitio
 
         // Evaluate each top-level select and combine via row product
         json[][] parts = [];
-        foreach ViewDefinitionSelect sel in viewDefinition.'select {
+        foreach sql_on_fhir_lib:ViewDefinitionSelect sel in viewDefinition.'select {
             parts.push(check doEvalTyped(sel, 'resource, extensions));
         }
         results.push(...check rowProduct(parts));
