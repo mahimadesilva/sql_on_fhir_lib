@@ -150,6 +150,28 @@ isolated function extractReferenceKeyParam(string path) returns string? {
     return paramStr;
 }
 
+// Finds the position of the top-level = operator (not inside parentheses, not != <= >= ~=)
+isolated function findTopLevelEquals(string path) returns int? {
+    int parenDepth = 0;
+    int i = 0;
+    while i < path.length() {
+        string ch = path.substring(i, i + 1);
+        if ch == "(" {
+            parenDepth += 1;
+        } else if ch == ")" {
+            parenDepth -= 1;
+        } else if ch == "=" && parenDepth == 0 {
+            string prev = i > 0 ? path.substring(i - 1, i) : "";
+            string next = i + 1 < path.length() ? path.substring(i + 1, i + 2) : "";
+            if prev != "!" && prev != "<" && prev != ">" && prev != "~" && next != "=" {
+                return i;
+            }
+        }
+        i += 1;
+    }
+    return ();
+}
+
 # Rewrites `.ofType(X)` → `X` (first letter uppercased) in a FHIRPath expression.
 # e.g. `value.ofType(Range)` → `valueRange`, matching FHIR JSON's choice-type naming convention.
 # + path - The FHIRPath expression to rewrite
@@ -186,6 +208,30 @@ isolated function rewriteOfType(string path) returns string {
 isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
     string rewrittenPath = rewriteOfType(path);
     map<json>? vars = constants.length() > 0 ? constants : ();
+
+    // Handle compound expressions: custom function on either side of =
+    // e.g. "getResourceKey() = link.other.getReferenceKey(Patient)"
+    if containsGetResourceKey(rewrittenPath) || containsGetReferenceKey(rewrittenPath) {
+        int? eqIdx = findTopLevelEquals(rewrittenPath);
+        if eqIdx is int {
+            string lhs = rewrittenPath.substring(0, eqIdx).trim();
+            string rhs = rewrittenPath.substring(eqIdx + 1).trim();
+            json[] lhsResult = check evaluateFhirPath(node, lhs, extensions, constants);
+            json[] rhsResult = check evaluateFhirPath(node, rhs, extensions, constants);
+            if lhsResult.length() == 0 || rhsResult.length() == 0 {
+                return [];
+            }
+            if lhsResult.length() != rhsResult.length() {
+                return [false];
+            }
+            foreach int idx in 0 ..< lhsResult.length() {
+                if lhsResult[idx] != rhsResult[idx] {
+                    return [false];
+                }
+            }
+            return [true];
+        }
+    }
 
     // Check for getResourceKey() function call
     if containsGetResourceKey(rewrittenPath) {
