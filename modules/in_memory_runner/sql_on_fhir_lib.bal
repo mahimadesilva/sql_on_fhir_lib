@@ -204,6 +204,7 @@ isolated function rewriteOfType(string path) returns string {
 # + node - The FHIR resource node to evaluate against
 # + path - The FHIRPath expression
 # + extensions - Optional custom extension functions
+# + constants - FHIRPath variables accessible via %name syntax
 # + return - Array of values from the FHIRPath evaluation
 isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
     string rewrittenPath = rewriteOfType(path);
