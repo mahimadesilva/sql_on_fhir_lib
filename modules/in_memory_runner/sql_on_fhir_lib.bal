@@ -207,7 +207,17 @@ isolated function rewriteOfType(string path) returns string {
 # + return - Array of values from the FHIRPath evaluation
 isolated function evaluateFhirPath(json node, string path, FhirPathExtensions? extensions = (), map<json> constants = {}) returns json[]|error {
     string rewrittenPath = rewriteOfType(path);
-    map<json>? vars = constants.length() > 0 ? constants : ();
+    // Only pass variables whose %name is actually referenced in the path.
+    // Passing a variable named "id" to a path that is simply "id" causes the
+    // FHIRPath library to resolve the bare identifier as a variable lookup
+    // instead of a property access.
+    map<json> relevantVars = {};
+    foreach [string, json] [key, value] in constants.entries() {
+        if rewrittenPath.includes("%" + key) {
+            relevantVars[key] = value;
+        }
+    }
+    map<json>? vars = relevantVars.length() > 0 ? relevantVars : ();
 
     // Handle compound expressions: custom function on either side of =
     // e.g. "getResourceKey() = link.other.getReferenceKey(Patient)"

@@ -553,610 +553,604 @@ function testForeachAndForeachornullOnTheSameLevel() returns error? {
     check dbClient.close();
 }
 
-// TODO: Re-Enable this test after implementing fhirpath $this
-// @test:Config {}
-// function testNestedForeach() returns error? {
-//     postgresql:Client dbClient = check new (host, username, password, database, port);
-//     _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
-//     _ = check dbClient->execute(`DELETE FROM PatientTable`);
-//     foreach json r in foreachResources {
-//         string rStr = r.toJsonString();
-//         _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
-//     }
-//     json viewJson = {
-//         "resource": "Patient",
-//         "status": "active",
-//         "select": [
-//             {
-//                 "column": [
-//                     {
-//                         "name": "id",
-//                         "path": "id",
-//                         "type": "id"
-//                     }
-//                 ]
-//             },
-//             {
-//                 "forEach": "contact",
-//                 "select": [
-//                     {
-//                         "column": [
-//                             {
-//                                 "name": "contact_type",
-//                                 "path": "telecom.system",
-//                                 "type": "code"
-//                             }
-//                         ]
-//                     },
-//                     {
-//                         "forEach": "name.given",
-//                         "column": [
-//                             {
-//                                 "name": "name",
-//                                 "path": "$this",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     }
-//                 ]
-//             }
-//         ]
-//     };
-//     json[] expected = [
-//         {
-//             "contact_type": "phone",
-//             "name": "N1",
-//             "id": "pt1"
-//         },
-//         {
-//             "contact_type": "phone",
-//             "name": "N1`",
-//             "id": "pt1"
-//         },
-//         {
-//             "contact_type": "email",
-//             "name": "N2",
-//             "id": "pt1"
-//         }
-//     ];
-//     TranspilerContext ctx = {
-//         resourceColumn: "resource_json",
-//         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
-//     string viewSql = check generateQuery(viewJson, ctx);
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
-//     stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
-//     json[] result = [];
-//     check from record {} row in resultStream
-//         do {
-//             result.push(row.toJson());
-//         };
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     assertResultsMatch(result, expected);
-//     check dbClient.close();
-// }
+@test:Config {}
+function testNestedForeach() returns error? {
+    postgresql:Client dbClient = check new (host, username, password, database, port);
+    _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
+    _ = check dbClient->execute(`DELETE FROM PatientTable`);
+    foreach json r in foreachResources {
+        string rStr = r.toJsonString();
+        _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
+    }
+    json viewJson = {
+        "resource": "Patient",
+        "status": "active",
+        "select": [
+            {
+                "column": [
+                    {
+                        "name": "id",
+                        "path": "id",
+                        "type": "id"
+                    }
+                ]
+            },
+            {
+                "forEach": "contact",
+                "select": [
+                    {
+                        "column": [
+                            {
+                                "name": "contact_type",
+                                "path": "telecom.system",
+                                "type": "code"
+                            }
+                        ]
+                    },
+                    {
+                        "forEach": "name.given",
+                        "column": [
+                            {
+                                "name": "name",
+                                "path": "$this",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+    json[] expected = [
+        {
+            "contact_type": "phone",
+            "name": "N1",
+            "id": "pt1"
+        },
+        {
+            "contact_type": "phone",
+            "name": "N1`",
+            "id": "pt1"
+        },
+        {
+            "contact_type": "email",
+            "name": "N2",
+            "id": "pt1"
+        }
+    ];
+    TranspilerContext ctx = {
+        resourceColumn: "resource_json",
+        tableName: "PatientTable",
+        filterByResourceType: false
+    };
+    string viewSql = check generateQuery(viewJson, ctx);
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
+    stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
+    json[] result = [];
+    check from record {} row in resultStream
+        do {
+            result.push(row.toJson());
+        };
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    assertResultsMatch(result, expected);
+    check dbClient.close();
+}
 
-// TODO: Re-Enable this test after implementing fhirpath $this
-// @test:Config {}
-// function testNestedForeachSelectColumn() returns error? {
-//     postgresql:Client dbClient = check new (host, username, password, database, port);
-//     _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
-//     _ = check dbClient->execute(`DELETE FROM PatientTable`);
-//     foreach json r in foreachResources {
-//         string rStr = r.toJsonString();
-//         _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
-//     }
-//     json viewJson = {
-//         "resource": "Patient",
-//         "status": "active",
-//         "select": [
-//             {
-//                 "column": [
-//                     {
-//                         "name": "id",
-//                         "path": "id",
-//                         "type": "id"
-//                     }
-//                 ]
-//             },
-//             {
-//                 "forEach": "contact",
-//                 "column": [
-//                     {
-//                         "name": "contact_type",
-//                         "path": "telecom.system",
-//                         "type": "code"
-//                     }
-//                 ],
-//                 "select": [
-//                     {
-//                         "forEach": "name.given",
-//                         "column": [
-//                             {
-//                                 "name": "name",
-//                                 "path": "$this",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     }
-//                 ]
-//             }
-//         ]
-//     };
-//     json[] expected = [
-//         {
-//             "contact_type": "phone",
-//             "name": "N1",
-//             "id": "pt1"
-//         },
-//         {
-//             "contact_type": "phone",
-//             "name": "N1`",
-//             "id": "pt1"
-//         },
-//         {
-//             "contact_type": "email",
-//             "name": "N2",
-//             "id": "pt1"
-//         }
-//     ];
-//     TranspilerContext ctx = {
-//         resourceColumn: "resource_json",
-//         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
-//     string viewSql = check generateQuery(viewJson, ctx);
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
-//     stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
-//     json[] result = [];
-//     check from record {} row in resultStream
-//         do {
-//             result.push(row.toJson());
-//         };
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     test:assertEquals(result.length(), expected.length(), msg = "Row count mismatch");
-//     json[] remaining = result.clone();
-//     foreach json expectedRow in expected {
-//         int? idx = remaining.indexOf(expectedRow);
-//         if idx is () {
-//             test:assertFail(string `Expected row not found in result: ${expectedRow.toJsonString()}`);
-//         }
-//         _ = remaining.remove(<int>idx);
-//     }
-//     check dbClient.close();
-// }
+@test:Config {}
+function testNestedForeachSelectColumn() returns error? {
+    postgresql:Client dbClient = check new (host, username, password, database, port);
+    _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
+    _ = check dbClient->execute(`DELETE FROM PatientTable`);
+    foreach json r in foreachResources {
+        string rStr = r.toJsonString();
+        _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
+    }
+    json viewJson = {
+        "resource": "Patient",
+        "status": "active",
+        "select": [
+            {
+                "column": [
+                    {
+                        "name": "id",
+                        "path": "id",
+                        "type": "id"
+                    }
+                ]
+            },
+            {
+                "forEach": "contact",
+                "column": [
+                    {
+                        "name": "contact_type",
+                        "path": "telecom.system",
+                        "type": "code"
+                    }
+                ],
+                "select": [
+                    {
+                        "forEach": "name.given",
+                        "column": [
+                            {
+                                "name": "name",
+                                "path": "$this",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+    json[] expected = [
+        {
+            "contact_type": "phone",
+            "name": "N1",
+            "id": "pt1"
+        },
+        {
+            "contact_type": "phone",
+            "name": "N1`",
+            "id": "pt1"
+        },
+        {
+            "contact_type": "email",
+            "name": "N2",
+            "id": "pt1"
+        }
+    ];
+    TranspilerContext ctx = {
+        resourceColumn: "resource_json",
+        tableName: "PatientTable",
+        filterByResourceType: false
+    };
+    string viewSql = check generateQuery(viewJson, ctx);
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
+    stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
+    json[] result = [];
+    check from record {} row in resultStream
+        do {
+            result.push(row.toJson());
+        };
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    test:assertEquals(result.length(), expected.length(), msg = "Row count mismatch");
+    json[] remaining = result.clone();
+    foreach json expectedRow in expected {
+        int? idx = remaining.indexOf(expectedRow);
+        if idx is () {
+            test:assertFail(string `Expected row not found in result: ${expectedRow.toJsonString()}`);
+        }
+        _ = remaining.remove(<int>idx);
+    }
+    check dbClient.close();
+}
 
-// TODO: Re-Enable this test after implementing fhirpath $this
-// @test:Config {}
-// function testForeachornullUnionallOnTheSameLevel() returns error? {
-//     postgresql:Client dbClient = check new (host, username, password, database, port);
-//     _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
-//     _ = check dbClient->execute(`DELETE FROM PatientTable`);
-//     foreach json r in foreachResources {
-//         string rStr = r.toJsonString();
-//         _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
-//     }
-//     json viewJson = {
-//         "resource": "Patient",
-//         "select": [
-//             {
-//                 "column": [
-//                     {
-//                         "path": "id",
-//                         "name": "id",
-//                         "type": "id"
-//                     }
-//                 ]
-//             },
-//             {
-//                 "forEachOrNull": "contact",
-//                 "unionAll": [
-//                     {
-//                         "column": [
-//                             {
-//                                 "path": "name.family",
-//                                 "name": "name",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     },
-//                     {
-//                         "forEach": "name.given",
-//                         "column": [
-//                             {
-//                                 "path": "$this",
-//                                 "name": "name",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     }
-//                 ]
-//             }
-//         ]
-//     };
-//     json[] expected = [
-//         {
-//             "id": "pt1",
-//             "name": "FC1.1"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N1"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N1`"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "FC1.2"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N2"
-//         },
-//         {
-//             "id": "pt2",
-//             "name": ()
-//         },
-//         {
-//             "id": "pt3",
-//             "name": ()
-//         }
-//     ];
-//     TranspilerContext ctx = {
-//         resourceColumn: "resource_json",
-//         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
-//     string viewSql = check generateQuery(viewJson, ctx);
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
-//     stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
-//     json[] result = [];
-//     check from record {} row in resultStream
-//         do {
-//             result.push(row.toJson());
-//         };
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     assertResultsMatch(result, expected);
-//     check dbClient.close();
-// }
+@test:Config {}
+function testForeachornullUnionallOnTheSameLevel() returns error? {
+    postgresql:Client dbClient = check new (host, username, password, database, port);
+    _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
+    _ = check dbClient->execute(`DELETE FROM PatientTable`);
+    foreach json r in foreachResources {
+        string rStr = r.toJsonString();
+        _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
+    }
+    json viewJson = {
+        "resource": "Patient",
+        "select": [
+            {
+                "column": [
+                    {
+                        "path": "id",
+                        "name": "id",
+                        "type": "id"
+                    }
+                ]
+            },
+            {
+                "forEachOrNull": "contact",
+                "unionAll": [
+                    {
+                        "column": [
+                            {
+                                "path": "name.family",
+                                "name": "name",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "forEach": "name.given",
+                        "column": [
+                            {
+                                "path": "$this",
+                                "name": "name",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+    json[] expected = [
+        {
+            "id": "pt1",
+            "name": "FC1.1"
+        },
+        {
+            "id": "pt1",
+            "name": "N1"
+        },
+        {
+            "id": "pt1",
+            "name": "N1`"
+        },
+        {
+            "id": "pt1",
+            "name": "FC1.2"
+        },
+        {
+            "id": "pt1",
+            "name": "N2"
+        },
+        {
+            "id": "pt2",
+            "name": ()
+        },
+        {
+            "id": "pt3",
+            "name": ()
+        }
+    ];
+    TranspilerContext ctx = {
+        resourceColumn: "resource_json",
+        tableName: "PatientTable",
+        filterByResourceType: false
+    };
+    string viewSql = check generateQuery(viewJson, ctx);
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
+    stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
+    json[] result = [];
+    check from record {} row in resultStream
+        do {
+            result.push(row.toJson());
+        };
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    assertResultsMatch(result, expected);
+    check dbClient.close();
+}
 
-// TODO: Re-Enable this test after implementing fhirpath $this
-// @test:Config {}
-// function testForeachUnionallOnTheSameLevel() returns error? {
-//     postgresql:Client dbClient = check new (host, username, password, database, port);
-//     _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
-//     _ = check dbClient->execute(`DELETE FROM PatientTable`);
-//     foreach json r in foreachResources {
-//         string rStr = r.toJsonString();
-//         _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
-//     }
-//     json viewJson = {
-//         "resource": "Patient",
-//         "select": [
-//             {
-//                 "column": [
-//                     {
-//                         "path": "id",
-//                         "name": "id",
-//                         "type": "id"
-//                     }
-//                 ]
-//             },
-//             {
-//                 "forEach": "contact",
-//                 "unionAll": [
-//                     {
-//                         "column": [
-//                             {
-//                                 "path": "name.family",
-//                                 "name": "name",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     },
-//                     {
-//                         "forEach": "name.given",
-//                         "column": [
-//                             {
-//                                 "path": "$this",
-//                                 "name": "name",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     }
-//                 ]
-//             }
-//         ]
-//     };
-//     json[] expected = [
-//         {
-//             "id": "pt1",
-//             "name": "FC1.1"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N1"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N1`"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "FC1.2"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N2"
-//         }
-//     ];
-//     TranspilerContext ctx = {
-//         resourceColumn: "resource_json",
-//         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
-//     string viewSql = check generateQuery(viewJson, ctx);
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
-//     stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
-//     json[] result = [];
-//     check from record {} row in resultStream
-//         do {
-//             result.push(row.toJson());
-//         };
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     assertResultsMatch(result, expected);
-//     check dbClient.close();
-// }
+@test:Config {}
+function testForeachUnionallOnTheSameLevel() returns error? {
+    postgresql:Client dbClient = check new (host, username, password, database, port);
+    _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
+    _ = check dbClient->execute(`DELETE FROM PatientTable`);
+    foreach json r in foreachResources {
+        string rStr = r.toJsonString();
+        _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
+    }
+    json viewJson = {
+        "resource": "Patient",
+        "select": [
+            {
+                "column": [
+                    {
+                        "path": "id",
+                        "name": "id",
+                        "type": "id"
+                    }
+                ]
+            },
+            {
+                "forEach": "contact",
+                "unionAll": [
+                    {
+                        "column": [
+                            {
+                                "path": "name.family",
+                                "name": "name",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "forEach": "name.given",
+                        "column": [
+                            {
+                                "path": "$this",
+                                "name": "name",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+    json[] expected = [
+        {
+            "id": "pt1",
+            "name": "FC1.1"
+        },
+        {
+            "id": "pt1",
+            "name": "N1"
+        },
+        {
+            "id": "pt1",
+            "name": "N1`"
+        },
+        {
+            "id": "pt1",
+            "name": "FC1.2"
+        },
+        {
+            "id": "pt1",
+            "name": "N2"
+        }
+    ];
+    TranspilerContext ctx = {
+        resourceColumn: "resource_json",
+        tableName: "PatientTable",
+        filterByResourceType: false
+    };
+    string viewSql = check generateQuery(viewJson, ctx);
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
+    stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
+    json[] result = [];
+    check from record {} row in resultStream
+        do {
+            result.push(row.toJson());
+        };
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    assertResultsMatch(result, expected);
+    check dbClient.close();
+}
 
-// TODO: Re-enable this test after implementing fhirpath $this  
-// @test:Config {}
-// function testForeachUnionallColumnSelectOnTheSameLevel() returns error? {
-//     postgresql:Client dbClient = check new (host, username, password, database, port);
-//     _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
-//     _ = check dbClient->execute(`DELETE FROM PatientTable`);
-//     foreach json r in foreachResources {
-//         string rStr = r.toJsonString();
-//         _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
-//     }
-//     json viewJson = {
-//         "resource": "Patient",
-//         "select": [
-//             {
-//                 "column": [
-//                     {
-//                         "path": "id",
-//                         "name": "id",
-//                         "type": "id"
-//                     }
-//                 ]
-//             },
-//             {
-//                 "forEach": "contact",
-//                 "column": [
-//                     {
-//                         "path": "telecom.system",
-//                         "name": "tel_system",
-//                         "type": "code"
-//                     }
-//                 ],
-//                 "select": [
-//                     {
-//                         "column": [
-//                             {
-//                                 "path": "gender",
-//                                 "name": "gender",
-//                                 "type": "code"
-//                             }
-//                         ]
-//                     }
-//                 ],
-//                 "unionAll": [
-//                     {
-//                         "column": [
-//                             {
-//                                 "path": "name.family",
-//                                 "name": "name",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     },
-//                     {
-//                         "forEach": "name.given",
-//                         "column": [
-//                             {
-//                                 "path": "$this",
-//                                 "name": "name",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     }
-//                 ]
-//             }
-//         ]
-//     };
-//     json[] expected = [
-//         {
-//             "id": "pt1",
-//             "name": "FC1.1",
-//             "tel_system": "phone",
-//             "gender": ()
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N1",
-//             "tel_system": "phone",
-//             "gender": ()
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N1`",
-//             "tel_system": "phone",
-//             "gender": ()
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "FC1.2",
-//             "tel_system": "email",
-//             "gender": "unknown"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N2",
-//             "tel_system": "email",
-//             "gender": "unknown"
-//         }
-//     ];
-//     TranspilerContext ctx = {
-//         resourceColumn: "resource_json",
-//         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
-//     string viewSql = check generateQuery(viewJson, ctx);
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
-//     stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
-//     json[] result = [];
-//     check from record {} row in resultStream
-//         do {
-//             result.push(row.toJson());
-//         };
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     assertResultsMatch(result, expected);
-//     check dbClient.close();
-// }
+@test:Config {}
+function testForeachUnionallColumnSelectOnTheSameLevel() returns error? {
+    postgresql:Client dbClient = check new (host, username, password, database, port);
+    _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
+    _ = check dbClient->execute(`DELETE FROM PatientTable`);
+    foreach json r in foreachResources {
+        string rStr = r.toJsonString();
+        _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
+    }
+    json viewJson = {
+        "resource": "Patient",
+        "select": [
+            {
+                "column": [
+                    {
+                        "path": "id",
+                        "name": "id",
+                        "type": "id"
+                    }
+                ]
+            },
+            {
+                "forEach": "contact",
+                "column": [
+                    {
+                        "path": "telecom.system",
+                        "name": "tel_system",
+                        "type": "code"
+                    }
+                ],
+                "select": [
+                    {
+                        "column": [
+                            {
+                                "path": "gender",
+                                "name": "gender",
+                                "type": "code"
+                            }
+                        ]
+                    }
+                ],
+                "unionAll": [
+                    {
+                        "column": [
+                            {
+                                "path": "name.family",
+                                "name": "name",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "forEach": "name.given",
+                        "column": [
+                            {
+                                "path": "$this",
+                                "name": "name",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+    json[] expected = [
+        {
+            "id": "pt1",
+            "name": "FC1.1",
+            "tel_system": "phone",
+            "gender": ()
+        },
+        {
+            "id": "pt1",
+            "name": "N1",
+            "tel_system": "phone",
+            "gender": ()
+        },
+        {
+            "id": "pt1",
+            "name": "N1`",
+            "tel_system": "phone",
+            "gender": ()
+        },
+        {
+            "id": "pt1",
+            "name": "FC1.2",
+            "tel_system": "email",
+            "gender": "unknown"
+        },
+        {
+            "id": "pt1",
+            "name": "N2",
+            "tel_system": "email",
+            "gender": "unknown"
+        }
+    ];
+    TranspilerContext ctx = {
+        resourceColumn: "resource_json",
+        tableName: "PatientTable",
+        filterByResourceType: false
+    };
+    string viewSql = check generateQuery(viewJson, ctx);
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
+    stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
+    json[] result = [];
+    check from record {} row in resultStream
+        do {
+            result.push(row.toJson());
+        };
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    assertResultsMatch(result, expected);
+    check dbClient.close();
+}
 
-// TODO: Re-enable this test after implementing fhirpath $this
-// @test:Config {}
-// function testForeachornullUnionallColumnSelectOnTheSameLevel() returns error? {
-//     postgresql:Client dbClient = check new (host, username, password, database, port);
-//     _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
-//     _ = check dbClient->execute(`DELETE FROM PatientTable`);
-//     foreach json r in foreachResources {
-//         string rStr = r.toJsonString();
-//         _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
-//     }
-//     json viewJson = {
-//         "resource": "Patient",
-//         "select": [
-//             {
-//                 "column": [
-//                     {
-//                         "path": "id",
-//                         "name": "id",
-//                         "type": "id"
-//                     }
-//                 ]
-//             },
-//             {
-//                 "forEachOrNull": "contact",
-//                 "column": [
-//                     {
-//                         "path": "telecom.system",
-//                         "name": "tel_system",
-//                         "type": "code"
-//                     }
-//                 ],
-//                 "select": [
-//                     {
-//                         "column": [
-//                             {
-//                                 "path": "gender",
-//                                 "name": "gender",
-//                                 "type": "code"
-//                             }
-//                         ]
-//                     }
-//                 ],
-//                 "unionAll": [
-//                     {
-//                         "column": [
-//                             {
-//                                 "path": "name.family",
-//                                 "name": "name",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     },
-//                     {
-//                         "forEach": "name.given",
-//                         "column": [
-//                             {
-//                                 "path": "$this",
-//                                 "name": "name",
-//                                 "type": "string"
-//                             }
-//                         ]
-//                     }
-//                 ]
-//             }
-//         ]
-//     };
-//     json[] expected = [
-//         {
-//             "id": "pt1",
-//             "name": "FC1.1",
-//             "tel_system": "phone",
-//             "gender": ()
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N1",
-//             "tel_system": "phone",
-//             "gender": ()
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N1`",
-//             "tel_system": "phone",
-//             "gender": ()
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "FC1.2",
-//             "tel_system": "email",
-//             "gender": "unknown"
-//         },
-//         {
-//             "id": "pt1",
-//             "name": "N2",
-//             "tel_system": "email",
-//             "gender": "unknown"
-//         },
-//         {
-//             "id": "pt2",
-//             "name": (),
-//             "tel_system": (),
-//             "gender": ()
-//         },
-//         {
-//             "id": "pt3",
-//             "name": (),
-//             "tel_system": (),
-//             "gender": ()
-//         }
-//     ];
-//     TranspilerContext ctx = {
-//         resourceColumn: "resource_json",
-//         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
-//     string viewSql = check generateQuery(viewJson, ctx);
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
-//     stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
-//     json[] result = [];
-//     check from record {} row in resultStream
-//         do {
-//             result.push(row.toJson());
-//         };
-//     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
-//     assertResultsMatch(result, expected);
-//     check dbClient.close();
-// }
+@test:Config {}
+function testForeachornullUnionallColumnSelectOnTheSameLevel() returns error? {
+    postgresql:Client dbClient = check new (host, username, password, database, port);
+    _ = check dbClient->execute(`CREATE TABLE IF NOT EXISTS PatientTable (resource_json JSONB)`);
+    _ = check dbClient->execute(`DELETE FROM PatientTable`);
+    foreach json r in foreachResources {
+        string rStr = r.toJsonString();
+        _ = check dbClient->execute(`INSERT INTO PatientTable (resource_json) VALUES (${rStr}::jsonb)`);
+    }
+    json viewJson = {
+        "resource": "Patient",
+        "select": [
+            {
+                "column": [
+                    {
+                        "path": "id",
+                        "name": "id",
+                        "type": "id"
+                    }
+                ]
+            },
+            {
+                "forEachOrNull": "contact",
+                "column": [
+                    {
+                        "path": "telecom.system",
+                        "name": "tel_system",
+                        "type": "code"
+                    }
+                ],
+                "select": [
+                    {
+                        "column": [
+                            {
+                                "path": "gender",
+                                "name": "gender",
+                                "type": "code"
+                            }
+                        ]
+                    }
+                ],
+                "unionAll": [
+                    {
+                        "column": [
+                            {
+                                "path": "name.family",
+                                "name": "name",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    {
+                        "forEach": "name.given",
+                        "column": [
+                            {
+                                "path": "$this",
+                                "name": "name",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+    json[] expected = [
+        {
+            "id": "pt1",
+            "name": "FC1.1",
+            "tel_system": "phone",
+            "gender": ()
+        },
+        {
+            "id": "pt1",
+            "name": "N1",
+            "tel_system": "phone",
+            "gender": ()
+        },
+        {
+            "id": "pt1",
+            "name": "N1`",
+            "tel_system": "phone",
+            "gender": ()
+        },
+        {
+            "id": "pt1",
+            "name": "FC1.2",
+            "tel_system": "email",
+            "gender": "unknown"
+        },
+        {
+            "id": "pt1",
+            "name": "N2",
+            "tel_system": "email",
+            "gender": "unknown"
+        },
+        {
+            "id": "pt2",
+            "name": (),
+            "tel_system": (),
+            "gender": ()
+        },
+        {
+            "id": "pt3",
+            "name": (),
+            "tel_system": (),
+            "gender": ()
+        }
+    ];
+    TranspilerContext ctx = {
+        resourceColumn: "resource_json",
+        tableName: "PatientTable",
+        filterByResourceType: false
+    };
+    string viewSql = check generateQuery(viewJson, ctx);
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
+    stream<record {}, sql:Error?> resultStream = dbClient->query(`SELECT * FROM sof_test_view`);
+    json[] result = [];
+    check from record {} row in resultStream
+        do {
+            result.push(row.toJson());
+        };
+    _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
+    assertResultsMatch(result, expected);
+    check dbClient.close();
+}
