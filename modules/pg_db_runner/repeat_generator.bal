@@ -84,8 +84,7 @@ isolated function generateRepeatStatement(
 
     string[] cteDefs = [];
     foreach RepeatEntry entry in repeatEntries {
-        cteDefs.push(buildRepeatCteDefinition(
-                entry, ctx.resourceAlias, ctx.tableName, viewDef.'resource, ctx.filterByResourceType));
+        cteDefs.push(buildRepeatCteDefinition(entry, ctx.resourceAlias, ctx.tableName));
     }
 
     string joinClauses = buildRepeatJoinClauses(repeatEntries, ctx.resourceAlias);
@@ -99,8 +98,7 @@ isolated function generateRepeatStatement(
 
     string selectClause = check generateRepeatSelectClause(
             combination, ctx, repeatEntries, forEachEntries);
-    string? whereClause = check buildWhereClause(
-            viewDef.'resource, ctx.resourceAlias, viewDef.'where, ctx);
+    string? whereClause = check buildWhereClause(ctx.resourceAlias, viewDef.'where, ctx);
 
     string statement = selectClause + "\n" + fromClause + joinClauses + lateralClauses;
     if whereClause is string {
@@ -146,7 +144,6 @@ isolated function buildRepeatContextMap(
             resourceAlias: baseCtx.resourceAlias,
             resourceColumn: baseCtx.resourceColumn,
             tableName: baseCtx.tableName,
-            filterByResourceType: baseCtx.filterByResourceType,
             constants: baseCtx.constants,
             iterationContext: cteAlias + ".item_json",
             currentForEachAlias: cteAlias,
@@ -239,7 +236,7 @@ isolated function isRepeatSelect(sql_on_fhir_lib:ViewDefinitionSelect sel) retur
 #   SELECT r.ctid AS resource_id, anchor.value AS item_json, 0 AS depth
 #   FROM <table> AS r
 #   CROSS JOIN LATERAL jsonb_array_elements(<source>->'<firstPath>') AS anchor(value)
-#   WHERE r.resource_type = '<type>'
+#   (no resource type filter — caller is responsible for table/query scope)
 #   UNION ALL
 #   <one recursive SELECT per path, unioned>
 # )
@@ -252,24 +249,17 @@ isolated function isRepeatSelect(sql_on_fhir_lib:ViewDefinitionSelect sel) retur
 # + entry - The repeat entry
 # + resourceAlias - SQL alias for the resource table
 # + tableName - The SQL table name
-# + resourceType - The FHIR resource type string
-# + filterByResourceType - When `true`, emits `WHERE <alias>.resource_type = '<type>'` in the anchor
 # + return - The CTE definition string (without `WITH RECURSIVE`)
 isolated function buildRepeatCteDefinition(
         RepeatEntry entry,
         string resourceAlias,
-        string tableName,
-        string resourceType,
-        boolean filterByResourceType) returns string {
+        string tableName) returns string {
 
     string firstPath = entry.paths[0];
     string anchor = "SELECT " + resourceAlias + ".ctid AS resource_id, anchor.value AS item_json, 0 AS depth\n"
         + "  FROM " + tableName + " AS " + resourceAlias + "\n"
         + "  CROSS JOIN LATERAL jsonb_array_elements(" + entry.sourceExpr + "->'" + firstPath
         + "') AS anchor(value)";
-    if filterByResourceType {
-        anchor += "\n  WHERE " + resourceAlias + ".resource_type = '" + resourceType + "'";
-    }
 
     // PostgreSQL imposes two constraints on recursive CTEs:
     // 1. The recursive CTE name must not appear in the non-recursive (anchor) term.

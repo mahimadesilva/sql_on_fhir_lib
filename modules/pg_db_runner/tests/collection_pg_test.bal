@@ -95,8 +95,7 @@ function testFailWhenCollectionIsNotTrue() returns error? {
     };
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string|error queryResult = generateQuery(viewJson, ctx);
     test:assertTrue(queryResult is error, msg = "Expected an error for: fail when 'collection' is not true");
@@ -167,8 +166,7 @@ function testCollectionTrue() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -261,8 +259,7 @@ function testCollectionFalseRelativeToForeachParent() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -355,8 +352,7 @@ function testCollectionFalseRelativeToForeachornullParent() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);

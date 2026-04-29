@@ -98,8 +98,7 @@ function testDecimalLowboundary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -164,8 +163,7 @@ function testDecimalHighboundary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -230,8 +228,7 @@ function testDatetimeLowboundary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -296,8 +293,7 @@ function testDatetimeHighboundary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -350,8 +346,7 @@ function testDateLowboundary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -404,8 +399,7 @@ function testDateHighboundary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -470,8 +464,7 @@ function testTimeLowboundary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -536,8 +529,7 @@ function testTimeHighboundary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);

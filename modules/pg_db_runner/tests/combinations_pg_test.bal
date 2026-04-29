@@ -61,8 +61,7 @@ function testSelect() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -129,8 +128,7 @@ function testColumnSelect() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -195,8 +193,7 @@ function testSiblingSelect() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -265,8 +262,7 @@ function testSiblingSelectInsideASelect() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -330,8 +326,7 @@ function testColumnSelectWithWhere() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -388,8 +383,7 @@ function testUnionallForeachColumnSelect() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);

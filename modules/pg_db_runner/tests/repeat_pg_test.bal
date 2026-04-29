@@ -119,8 +119,7 @@ function testBasic() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "QuestionnaireResponseTable",
-        filterByResourceType: false
+        tableName: "QuestionnaireResponseTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -212,8 +211,7 @@ function testItemAndAnswerItem() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "QuestionnaireResponseTable",
-        filterByResourceType: false
+        tableName: "QuestionnaireResponseTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -268,8 +266,7 @@ function testEmptyExpression() returns error? {
     json[] expected = [];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "QuestionnaireResponseTable",
-        filterByResourceType: false
+        tableName: "QuestionnaireResponseTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -355,8 +352,7 @@ function testEmptyChildExpression() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "QuestionnaireResponseTable",
-        filterByResourceType: false
+        tableName: "QuestionnaireResponseTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -431,8 +427,7 @@ function testCombinedWithForeach() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "QuestionnaireResponseTable",
-        filterByResourceType: false
+        tableName: "QuestionnaireResponseTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -527,8 +522,7 @@ function testCombinedWithForeachornull() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "QuestionnaireResponseTable",
-        filterByResourceType: false
+        tableName: "QuestionnaireResponseTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -687,8 +681,7 @@ function testCombinedWithUnionall() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "QuestionnaireResponseTable",
-        filterByResourceType: false
+        tableName: "QuestionnaireResponseTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);

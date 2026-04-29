@@ -405,8 +405,7 @@ function testBase64binary() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -473,8 +472,7 @@ function testCode() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -541,8 +539,7 @@ function testDate() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -609,8 +606,7 @@ function testDatetime() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -685,8 +681,7 @@ function testDecimal() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -777,8 +772,7 @@ function testId() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -853,8 +847,7 @@ function testInstant() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -945,8 +938,7 @@ function testOid() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -1013,8 +1005,7 @@ function testPositiveint() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -1089,8 +1080,7 @@ function testTime() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -1157,8 +1147,7 @@ function testUnsignedint() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -1225,8 +1214,7 @@ function testUri() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -1317,8 +1305,7 @@ function testUrl() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -1409,8 +1396,7 @@ function testUuid() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "OrganizationTable",
-        filterByResourceType: false
+        tableName: "OrganizationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);

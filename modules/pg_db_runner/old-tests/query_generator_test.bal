@@ -15,7 +15,7 @@ isolated function defaultCtx() returns TranspilerContext {
 # + resourceType - FHIR resource type (e.g. "Patient") — used to derive table name
 # + return - `TranspilerContext` targeting `<ResourceType>Table` with `RESOURCE_JSON` column and no type filter
 isolated function perResourceCtx(string resourceType) returns TranspilerContext {
-    return {resourceAlias: "r", resourceColumn: "RESOURCE_JSON", tableName: resourceType + "Table", filterByResourceType: false};
+    return {resourceAlias: "r", resourceColumn: "RESOURCE_JSON", tableName: resourceType + "Table"};
 }
 
 # Minimal combination with no union choice (single select, unionChoice = -1).
@@ -44,8 +44,7 @@ function testSimpleSingleColumn() returns error? {
 
     string expected =
         "SELECT\n  jsonb_extract_path_text(r.resource, 'id') AS \"id\"\n"
-        + "FROM fhir_resources AS r\n"
-        + "WHERE r.resource_type = 'Patient'";
+        + "FROM fhir_resources AS r";
     test:assertEquals(result, expected);
 }
 
@@ -69,8 +68,7 @@ function testSimpleMultipleColumns() returns error? {
         "SELECT\n"
         + "  jsonb_extract_path_text(r.resource, 'id') AS \"id\",\n"
         + "  jsonb_extract_path_text(r.resource, 'birthDate') AS \"birthDate\"\n"
-        + "FROM fhir_resources AS r\n"
-        + "WHERE r.resource_type = 'Patient'";
+        + "FROM fhir_resources AS r";
     test:assertEquals(result, expected);
 }
 
@@ -96,8 +94,7 @@ function testSimpleNestedSelect() returns error? {
         "SELECT\n"
         + "  jsonb_extract_path_text(r.resource, 'id') AS \"id\",\n"
         + "  jsonb_extract_path_text(r.resource, 'birthDate') AS \"birthDate\"\n"
-        + "FROM fhir_resources AS r\n"
-        + "WHERE r.resource_type = 'Patient'";
+        + "FROM fhir_resources AS r";
     test:assertEquals(result, expected);
 }
 
@@ -116,8 +113,6 @@ function testSimpleViewWhere() returns error? {
 
     string result = check generateSimpleStatement(simpleCombination(sel), viewDef, defaultCtx());
 
-    // The WHERE clause must contain the resource type filter AND the transpiled FHIRPath condition.
-    test:assertTrue(result.includes("WHERE r.resource_type = 'Patient'"));
     test:assertTrue(result.includes("(jsonb_extract_path_text(r.resource, 'id') = 'test-id')"));
 }
 
@@ -219,7 +214,6 @@ function testSingleCombinationNoUnionAll() returns error? {
 
     test:assertFalse(result.includes("UNION ALL"));
     test:assertTrue(result.includes("SELECT\n"));
-    test:assertTrue(result.includes("WHERE r.resource_type = 'Observation'"));
 }
 
 // ---------------------------------------------------------------------------
@@ -272,7 +266,6 @@ function testPerResourceTableNoTypeFilter() returns error? {
 
     test:assertTrue(result.includes("FROM PatientTable AS r"), "Expected PatientTable in FROM clause");
     test:assertTrue(result.includes("RESOURCE_JSON"), "Expected RESOURCE_JSON column in expressions");
-    test:assertFalse(result.includes("resource_type"), "resource_type filter must not appear for per-resource tables");
 }
 
 @test:Config {}
@@ -287,7 +280,6 @@ function testCustomSchemaWithWhere() returns error? {
     string result = check generateQuery(viewDef, perResourceCtx("Patient"));
 
     test:assertTrue(result.includes("FROM PatientTable AS r"), "Expected PatientTable");
-    test:assertFalse(result.includes("resource_type"), "resource_type must not appear");
     test:assertTrue(result.includes("WHERE"), "Expected WHERE clause for the view-level filter");
     test:assertTrue(result.includes("active"), "Expected transpiled where condition");
 }

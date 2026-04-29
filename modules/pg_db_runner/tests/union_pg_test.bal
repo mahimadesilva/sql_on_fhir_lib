@@ -209,8 +209,7 @@ function testBasic2() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -341,8 +340,7 @@ function testUnionallColumn() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -468,8 +466,7 @@ function testDuplicates() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -534,8 +531,7 @@ function testEmptyResults() returns error? {
     json[] expected = [];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -633,8 +629,7 @@ function testEmptyWithForeachornull() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -716,8 +711,7 @@ function testForeachornullAndForeach() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -821,8 +815,7 @@ function testNested() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -930,8 +923,7 @@ function testOneEmptyOperand() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -996,8 +988,7 @@ function testColumnMismatch() returns error? {
     };
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string|error queryResult = generateQuery(viewJson, ctx);
     test:assertTrue(queryResult is error, msg = "Expected an error for: column mismatch");
@@ -1053,8 +1044,7 @@ function testColumnOrderMismatch() returns error? {
     };
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string|error queryResult = generateQuery(viewJson, ctx);
     test:assertTrue(queryResult is error, msg = "Expected an error for: column order mismatch");

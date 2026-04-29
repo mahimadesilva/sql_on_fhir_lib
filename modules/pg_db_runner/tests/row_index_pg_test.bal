@@ -140,8 +140,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
@@ -215,8 +214,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
@@ -295,8 +293,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
@@ -393,8 +390,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
@@ -475,8 +471,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
@@ -594,8 +589,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
@@ -702,8 +696,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
@@ -822,8 +815,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));
@@ -897,8 +889,7 @@
 //     TranspilerContext ctx = {
 //         resourceColumn: "resource_json",
 //         tableName: "PatientTable",
-//         filterByResourceType: false
-//     };
+////     };
 //     string viewSql = check generateQuery(viewJson, ctx);
 //     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
 //     _ = check dbClient->execute(new DynamicQuery("CREATE VIEW sof_test_view AS " + viewSql));

@@ -31,8 +31,7 @@ function testEmpty() returns error? {
     json viewJson = {};
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string|error queryResult = generateQuery(viewJson, ctx);
     test:assertTrue(queryResult is error, msg = "Expected an error for: empty");
@@ -63,8 +62,7 @@ function testMissingResource() returns error? {
     };
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string|error queryResult = generateQuery(viewJson, ctx);
     test:assertTrue(queryResult is error, msg = "Expected an error for: missing resource");
@@ -91,8 +89,7 @@ function testWrongFhirpath() returns error? {
     };
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string|error queryResult = generateQuery(viewJson, ctx);
     test:assertTrue(queryResult is error, msg = "Expected an error for: wrong fhirpath");
@@ -119,8 +116,7 @@ function testWrongTypeInForeach() returns error? {
     };
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string|error queryResult = generateQuery(viewJson, ctx);
     test:assertTrue(queryResult is error, msg = "Expected an error for: wrong type in forEach");
@@ -158,8 +154,7 @@ function testWhereWithPathResolvingToNotBoolean() returns error? {
     };
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string|error queryResult = generateQuery(viewJson, ctx);
     test:assertTrue(queryResult is error, msg = "Expected an error for: where with path resolving to not boolean");

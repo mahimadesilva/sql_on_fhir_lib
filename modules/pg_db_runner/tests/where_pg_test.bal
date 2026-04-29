@@ -87,8 +87,7 @@ function testSimpleWherePathWithResult() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -136,8 +135,7 @@ function testWherePathWithNoResults() returns error? {
     json[] expected = [];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -189,8 +187,7 @@ function testWherePathWithGreaterThanInequality() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -242,8 +239,7 @@ function testWherePathWithLessThanInequality() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -298,8 +294,7 @@ function testMultipleWherePaths() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -351,8 +346,7 @@ function testWherePathWithAnAndConnector() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -407,8 +401,7 @@ function testWherePathWithAnOrConnector() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);
@@ -463,8 +456,7 @@ function testWherePathThatEvaluatesToTrueWhenEmpty() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "PatientTable",
-        filterByResourceType: false
+        tableName: "PatientTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);

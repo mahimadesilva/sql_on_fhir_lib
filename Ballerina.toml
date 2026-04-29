@@ -11,9 +11,3 @@ export = true
 [[package.modules]]
 name = "sql_on_fhir_lib.pg_db_runner"
 export = true
-
-[[dependency]]
-name = "health.fhir.r4utils.fhirpath"
-org = "ballerinax"
-repository = "local"
-version = "5.0.0"

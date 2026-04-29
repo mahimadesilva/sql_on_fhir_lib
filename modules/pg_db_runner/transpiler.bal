@@ -29,8 +29,6 @@
 # + resourceAlias - The SQL table alias for the resource (e.g., "r")
 # + resourceColumn - The column name holding the JSONB resource data (e.g., "resource" or "RESOURCE_JSON")
 # + tableName - The SQL table name to query (e.g., "fhir_resources" or "PatientTable")
-# + filterByResourceType - When `true`, adds `WHERE alias.resource_type = '<type>'`.
-# Set to `false` for per-resource-type tables that have no discriminator column.
 # + constants - External constants (%name references in FHIRPath)
 # + iterationContext - Current iteration context expression (e.g., "whereItem.value")
 # + currentForEachAlias - forEach alias (e.g., "forEach_0")
@@ -41,7 +39,6 @@ public type TranspilerContext record {|
     string resourceAlias = "r";
     string resourceColumn;
     string tableName;
-    boolean filterByResourceType = true;
     map<string|int|float|boolean?> constants?;
     string? iterationContext = ();
     string? currentForEachAlias = ();
@@ -428,7 +425,6 @@ isolated function handleWhere(string? base, Expr[] params, TranspilerContext ctx
         resourceAlias: tableAlias,
         resourceColumn: ctx.resourceColumn,
         tableName: ctx.tableName,
-        filterByResourceType: ctx.filterByResourceType,
         constants: ctx.constants,
         iterationContext: string `${tableAlias}.value`
     };
@@ -455,7 +451,6 @@ isolated function handleExists(string? base, Expr[] params, TranspilerContext ct
                 resourceAlias: tableAlias,
                 resourceColumn: ctx.resourceColumn,
                 tableName: ctx.tableName,
-                filterByResourceType: ctx.filterByResourceType,
                 constants: ctx.constants,
                 iterationContext: string `${tableAlias}.value`
             };
@@ -675,7 +670,7 @@ isolated function handleSelect(string? base, string[] args, TranspilerContext ct
 # + return - The SQL expression for resource_type/id
 isolated function handleGetResourceKey(TranspilerContext ctx) returns string {
     string src = string `${ctx.resourceAlias}.${ctx.resourceColumn}`;
-    return string `${ctx.resourceAlias}.resource_type || '/' || jsonb_extract_path_text(${src}, 'id')`;
+    return string `jsonb_extract_path_text(${src}, 'resourceType') || '/' || jsonb_extract_path_text(${src}, 'id')`;
 }
 
 # Handles the ofType(type) function for polymorphic field mapping.

@@ -109,8 +109,7 @@ function testAddObservation() returns error? {
     ];
     TranspilerContext ctx = {
         resourceColumn: "resource_json",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
     string viewSql = check generateQuery(viewJson, ctx);
     _ = check dbClient->execute(`DROP VIEW IF EXISTS sof_test_view`);

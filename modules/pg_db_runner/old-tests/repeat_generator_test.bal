@@ -34,8 +34,6 @@ function testRepeatSimpleSinglePath() returns error? {
     test:assertTrue(
         result.includes("jsonb_extract_path_text(repeat_0.item_json::jsonb, 'linkId') AS \"linkId\""),
         "Expected linkId column to source from repeat_0.item_json");
-    test:assertTrue(result.includes("WHERE r.resource_type = 'Questionnaire'"),
-        "Expected resource_type filter");
 }
 
 // ---------------------------------------------------------------------------

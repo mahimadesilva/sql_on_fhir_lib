@@ -44,7 +44,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "crypto"
-version = "2.11.0"
+version = "2.10.1"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
@@ -91,7 +91,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "ftp"
-version = "2.17.1"
+version = "2.16.0"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "data.csv"},
@@ -436,7 +436,7 @@ dependencies = [
 [[package]]
 org = "ballerinax"
 name = "health.fhir.r4.parser"
-version = "7.1.1"
+version = "7.0.0"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "http"},
@@ -465,8 +465,9 @@ dependencies = [
 [[package]]
 org = "ballerinax"
 name = "health.fhir.r4utils.fhirpath"
-version = "5.0.0"
+version = "6.0.0"
 dependencies = [
+	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "lang.array"},
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "regex"},

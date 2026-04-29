@@ -27,7 +27,6 @@ function testForEachSimpleColumnSQL() returns error? {
         result.includes("jsonb_extract_path_text(forEach_0.value::jsonb, 'family') AS \"family\""),
         "Expected column expression using forEach_0.value"
     );
-    test:assertTrue(result.includes("WHERE r.resource_type = 'Patient'"));
 }
 
 // ---------------------------------------------------------------------------
@@ -169,7 +168,6 @@ function testForEachGenerateQuery() returns error? {
     string result = check generateQuery(viewDef, defaultCtx());
 
     test:assertTrue(result.includes("LATERAL"), "Expected LATERAL keyword in forEach query");
-    test:assertTrue(result.includes("WHERE r.resource_type = 'Observation'"));
     test:assertTrue(result.startsWith("SELECT"), "Expected query to start with SELECT");
 }
 
@@ -190,14 +188,12 @@ function testForEachCustomTableAndColumn() returns error? {
     TranspilerContext ctx = {
         resourceAlias: "r",
         resourceColumn: "RESOURCE_JSON",
-        tableName: "ObservationTable",
-        filterByResourceType: false
+        tableName: "ObservationTable"
     };
 
     string result = check generateQuery(viewDef, ctx);
 
     test:assertTrue(result.includes("FROM ObservationTable AS r"), "Expected ObservationTable in FROM clause");
     test:assertTrue(result.includes("RESOURCE_JSON"), "Expected RESOURCE_JSON in LATERAL JOIN source");
-    test:assertFalse(result.includes("resource_type"), "resource_type must not appear for per-resource tables");
     test:assertTrue(result.includes("LATERAL"), "Expected LATERAL JOIN for forEach");
 }

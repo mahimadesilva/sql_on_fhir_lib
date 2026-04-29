@@ -129,7 +129,7 @@ isolated function generateSimpleStatement(
 
     string selectClause = check generateSimpleSelectClause(combination, ctx);
     string fromClause = generateFromClause(ctx.resourceAlias, ctx.tableName);
-    string? whereClause = check buildWhereClause(viewDef.'resource, ctx.resourceAlias, viewDef.'where, ctx);
+    string? whereClause = check buildWhereClause(ctx.resourceAlias, viewDef.'where, ctx);
 
     string statement = selectClause + "\n" + fromClause;
     if whereClause is string {
@@ -281,26 +281,20 @@ isolated function generateFromClause(string resourceAlias, string tableName) ret
     return "FROM " + tableName + " AS " + resourceAlias;
 }
 
-# Build the WHERE clause combining resource type filter and view-level filters.
+# Build the WHERE clause from view-level filters.
 #
-# Includes `<alias>.resource_type = '<resource>'` only when `ctx.filterByResourceType` is `true`.
 # Appends each `sql_on_fhir_lib:ViewDefinitionWhere` condition by transpiling its FHIRPath expression.
 #
-# + resourceType - The FHIR resource type string (e.g. `"Patient"`)
 # + resourceAlias - SQL alias for the resource table
 # + whereConditions - Optional view-level filter conditions
-# + ctx - The transpiler context (`filterByResourceType` controls the type filter)
+# + ctx - The transpiler context
 # + return - The WHERE clause string, or `()` if no conditions, or an error
 isolated function buildWhereClause(
-        string resourceType,
         string resourceAlias,
         sql_on_fhir_lib:ViewDefinitionWhere[]? whereConditions,
         TranspilerContext ctx) returns string?|error {
 
     string[] conditions = [];
-    if ctx.filterByResourceType {
-        conditions.push(resourceAlias + ".resource_type = '" + resourceType + "'");
-    }
 
     if whereConditions is sql_on_fhir_lib:ViewDefinitionWhere[] {
         foreach sql_on_fhir_lib:ViewDefinitionWhere w in whereConditions {

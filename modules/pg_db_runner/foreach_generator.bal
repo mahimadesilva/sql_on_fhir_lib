@@ -70,7 +70,7 @@ isolated function generateForEachStatement(
 
     string lateralClauses = buildLateralJoinClauses(contextMap, topLevelForEach, combination);
     string selectClause = check generateForEachSelectClause(combination, ctx, contextMap);
-    string? whereClause = check buildWhereClause(viewDef.'resource, ctx.resourceAlias, viewDef.'where, ctx);
+    string? whereClause = check buildWhereClause(ctx.resourceAlias, viewDef.'where, ctx);
 
     string statement = selectClause + "\n" + fromClause + lateralClauses;
     if whereClause is string {
@@ -201,7 +201,6 @@ isolated function buildForEachEntries(
         resourceAlias: baseCtx.resourceAlias,
         resourceColumn: baseCtx.resourceColumn,
         tableName: baseCtx.tableName,
-        filterByResourceType: baseCtx.filterByResourceType,
         constants: baseCtx.constants,
         iterationContext: applyAlias + ".value",
         currentForEachAlias: applyAlias,
